@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool showCompleted = true;
-  String sortOption = 'futureToPast'; // will be loaded from prefs
+  String sortOption = 'futureToPast';
   List<Map<String, dynamic>> tasks = [];
 
   @override
@@ -57,95 +57,59 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Filter by completed flag
     final visibleTasks =
         tasks.where((t) => showCompleted || !(t['isChecked'] as bool)).toList();
 
-    // 2. Sort by selected option
     if (sortOption == 'newlyAdded') {
-      // Newest first: larger original index means added later
       visibleTasks.sort((a, b) => tasks.indexOf(b).compareTo(tasks.indexOf(a)));
     } else if (sortOption == 'dueEarliest') {
-      // Earliest due date first
       visibleTasks.sort((a, b) {
         DateTime da = a['dueDate'];
         DateTime db = b['dueDate'];
         return da.compareTo(db);
       });
     }
-    // else: futureToPast or any other, keep original insertion order
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
         title: Text("ToDo", style: TextStyle(color: secondaryColor)),
       ),
-      // appBar: AppBar(
-      //   backgroundColor: primaryColor,
-      //   title: Row(
-      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //     children: [
-      //       Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         mainAxisSize: MainAxisSize.min,
-      //         children: [
-      //           IconButton(
-      //             onPressed: () {},
-      //             icon: const Icon(Icons.home, size: 30, color: secondaryColor),
-      //           ),
-      //           const SizedBox(height: 4),
-      //           Container(
-      //             width: 70,
-      //             height: 30,
-      //             decoration: BoxDecoration(
-      //               color: primarylightColor,
-      //               borderRadius: BorderRadius.circular(30),
-      //             ),
-      //             child: TextButton(
-      //               onPressed: () {},
-      //               style: TextButton.styleFrom(padding: EdgeInsets.zero),
-      //               child: const Text(
-      //                 "Tasks",
-      //                 style: TextStyle(color: textPrimaryColor, fontSize: 16),
-      //               ),
-      //             ),
-      //           ),
-      //         ],
-      //       ),
-      //       Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         mainAxisSize: MainAxisSize.min,
-      //         children: [
-      //           IconButton(
-      //             onPressed:
-      //                 () => Navigator.push(
-      //                   context,
-      //                   MaterialPageRoute(builder: (_) => ProfileScreen()),
-      //                 ),
-      //             icon: const Icon(Icons.face, size: 30, color: secondaryColor),
-      //           ),
-      //           IconButton(
-      //             onPressed: () {},
-      //             icon: const Icon(
-      //               Icons.calendar_month,
-      //               size: 30,
-      //               color: secondaryColor,
-      //             ),
-      //           ),
-      //         ],
-      //       ),
-      //     ],
-      //   ),
-      //   centerTitle: true,
-      //   toolbarHeight: 90,
-      // ),
       body: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: deleteSelectedTasks,
+                onPressed: () async {
+                  final shouldDelete = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Confirm Deletion'),
+                          content: const Text(
+                            'Are you sure you want to delete selected tasks?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                  );
+
+                  if (shouldDelete == true) {
+                    deleteSelectedTasks();
+                  }
+                },
                 icon: const Icon(
                   Icons.delete_outlined,
                   color: secondaryColor,
@@ -166,20 +130,37 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: visibleTasks.length,
-              itemBuilder: (context, index) {
-                final task = visibleTasks[index];
-                final originalIndex = tasks.indexOf(task);
-                return HomeCard(
-                  title: task['title'],
-                  description: task['description'],
-                  dueDate: task['dueDate'],
-                  isChecked: task['isChecked'],
-                  onChanged: (_) => toggleTask(originalIndex),
-                );
-              },
-            ),
+            child:
+                visibleTasks.isEmpty
+                    ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Text(
+                          '"The secret of\ngetting ahead is\ngetting started."',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 34,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[600],
+                            height: 1.6,
+                          ),
+                        ),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: visibleTasks.length,
+                      itemBuilder: (context, index) {
+                        final task = visibleTasks[index];
+                        final originalIndex = tasks.indexOf(task);
+                        return HomeCard(
+                          title: task['title'],
+                          description: task['description'],
+                          dueDate: task['dueDate'],
+                          isChecked: task['isChecked'],
+                          onChanged: (_) => toggleTask(originalIndex),
+                        );
+                      },
+                    ),
           ),
         ],
       ),

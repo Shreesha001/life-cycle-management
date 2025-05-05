@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
+import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
+import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart';
 
 class MyApp extends StatelessWidget {
@@ -160,12 +162,12 @@ class MyDiaryScreen extends StatelessWidget {
 
 class PasswordManagerScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => _dummyScreen('Password Manager');
+  Widget build(BuildContext context) => PasswordDashboardScreen();
 }
 
 class DocumentManagementScreen extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => _dummyScreen('Document Management');
+  Widget build(BuildContext context) => DocumentScreen();
 }
 
 class FinanceTrackerScreen extends StatelessWidget {
