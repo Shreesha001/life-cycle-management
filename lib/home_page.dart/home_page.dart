@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
+import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 import 'package:merge_app/features/finance_tracker/screens/homePage/homepage_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
@@ -42,6 +43,11 @@ class _HomePageState extends State<HomePage> {
     _FeatureBox('Finance Tracker', Colors.orangeAccent, FinanceTrackerScreen()),
     _FeatureBox('Dates to Remember', Colors.green, DatesToRememberScreen()),
     _FeatureBox('Vehicle', Colors.redAccent, VehicleScreen()),
+    _FeatureBox(
+      'Family locator',
+      const Color.fromARGB(255, 140, 246, 235),
+      FamilyAppHomeScreen(),
+    ),
   ];
 
   List<_FeatureBox> _filteredFeatures = [];
@@ -185,6 +191,11 @@ class DatesToRememberScreen extends StatelessWidget {
 class VehicleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => VehicleDasboardBottomScreen();
+}
+
+class FamilyLocator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => FamilyAppHomeScreen();
 }
 
 Widget _dummyScreen(String title) {
