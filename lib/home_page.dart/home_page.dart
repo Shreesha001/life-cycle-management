@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
-import 'package:merge_app/features/finance_tracker/screens/homePage/homepage_screen.dart';
+import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
