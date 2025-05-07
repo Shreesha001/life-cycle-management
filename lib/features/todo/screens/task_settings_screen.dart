@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/todo/utils/colors.dart';
+import 'package:merge_app/core/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskSettingsScreen extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/password_manager/core/theme/theme.dart';
+import 'package:merge_app/core/theme/theme.dart';
 
 class AddNewPasswordScreen extends StatefulWidget {
   const AddNewPasswordScreen({super.key});

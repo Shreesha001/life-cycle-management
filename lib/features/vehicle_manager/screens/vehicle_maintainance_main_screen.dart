@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/vehicle_manager/core/theme/theme.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_maintainance_screen.dart';
 
 class VehicleMaintainanceMainScreen extends StatelessWidget {

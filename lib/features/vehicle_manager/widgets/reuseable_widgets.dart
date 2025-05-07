@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/vehicle_manager/core/constants/app_constants.dart';
-import 'package:merge_app/features/vehicle_manager/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 
 class ReusableButton extends StatelessWidget {
   final String text;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/vehicle_manager/core/theme/theme.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_document_screen.dart';
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_fastag_screen.dart';
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_homePage_screen.dart';

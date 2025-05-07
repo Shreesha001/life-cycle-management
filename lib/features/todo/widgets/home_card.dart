@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:merge_app/features/todo/screens/task_details_screen.dart';
-import 'package:merge_app/features/todo/utils/colors.dart';
+import 'package:merge_app/core/colors.dart';
 
 class HomeCard extends StatelessWidget {
   final String title;

@@ -4,8 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:merge_app/features/document_management/core/constants/app_constants.dart';
-import 'package:merge_app/features/document_management/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:merge_app/features/document_management/widgets/reuseable_widgets.dart';
 import 'package:share_plus/share_plus.dart';
 

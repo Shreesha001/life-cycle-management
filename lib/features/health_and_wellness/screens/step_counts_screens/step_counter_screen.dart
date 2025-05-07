@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/health_and_wellness/core/constants/app_constants.dart';
-import 'package:merge_app/features/health_and_wellness/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 
 class StepCounterScreen extends StatefulWidget {
   const StepCounterScreen({super.key});

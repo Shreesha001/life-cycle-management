@@ -1,5 +1,5 @@
-import 'package:merge_app/features/document_management/core/constants/app_constants.dart';
-import 'package:merge_app/features/document_management/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class ReusableButton extends StatelessWidget {

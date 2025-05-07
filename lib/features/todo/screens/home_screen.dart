@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_task_screen.dart';
-import 'package:merge_app/features/todo/utils/colors.dart';
+import 'package:merge_app/core/colors.dart';
 import 'package:merge_app/features/todo/screens/profile_screen.dart';
 import 'package:merge_app/features/todo/screens/task_settings_screen.dart';
 import 'package:merge_app/features/todo/widgets/home_card.dart';

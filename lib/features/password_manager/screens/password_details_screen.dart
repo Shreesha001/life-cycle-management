@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:merge_app/features/password_manager/core/constants/app_constants.dart';
-import 'package:merge_app/features/password_manager/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:merge_app/features/password_manager/screens/add_new_password_screen.dart';
 import 'package:share_plus/share_plus.dart';
 

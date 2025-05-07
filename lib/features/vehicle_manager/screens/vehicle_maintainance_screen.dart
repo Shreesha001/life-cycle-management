@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:merge_app/features/vehicle_manager/core/constants/app_constants.dart';
-import 'package:merge_app/features/vehicle_manager/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 
 class VehicleMaintenanceScreen extends StatefulWidget {
   const VehicleMaintenanceScreen({super.key});

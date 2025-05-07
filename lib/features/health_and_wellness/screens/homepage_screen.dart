@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:merge_app/features/health_and_wellness/core/constants/app_constants.dart';
-import 'package:merge_app/features/health_and_wellness/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:merge_app/features/health_and_wellness/screens/health_body_screens/health_body_homepage_screen.dart';
 
 import 'package:merge_app/features/health_and_wellness/screens/period_tracking_screens/period_dashboard_screen.dart';

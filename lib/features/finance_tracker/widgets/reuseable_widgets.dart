@@ -1,5 +1,5 @@
-import 'package:merge_app/features/finance_tracker/core/constants/app_constants.dart';
-import 'package:merge_app/features/finance_tracker/core/theme/theme.dart';
+import 'package:merge_app/core/constants/app_constants.dart';
+import 'package:merge_app/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class ReusableButton extends StatelessWidget {
