@@ -5,204 +5,217 @@ import 'package:merge_app/features/family_locator/screen/family_app_home_screen.
 import 'package:merge_app/features/finance_tracker/screens/homePage/homepage_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
-import 'package:merge_app/features/todo/screens/home_screen.dart';
+import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_dasboard_bottom_screen.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Home Page',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final List<_FeatureBox> _allFeatures = [
-    _FeatureBox('ToDo', Colors.blueAccent, ToDoScreen()),
-    _FeatureBox('My Dairy', Colors.pinkAccent, MyDiaryScreen()),
-    _FeatureBox(
-      'Password Manager',
-      Colors.deepPurpleAccent,
-      PasswordManagerScreen(),
-    ),
-    _FeatureBox('Document Management', Colors.teal, DocumentManagementScreen()),
-    _FeatureBox('Finance Tracker', Colors.orangeAccent, FinanceTrackerScreen()),
-    _FeatureBox('Dates to Remember', Colors.green, DatesToRememberScreen()),
-    _FeatureBox('Vehicle', Colors.redAccent, VehicleScreen()),
-    _FeatureBox(
-      'Family locator',
-      const Color.fromARGB(255, 140, 246, 235),
-      FamilyAppHomeScreen(),
-    ),
+class HomeScreen extends StatelessWidget {
+  final List<Map<String, dynamic>> features = [
+    {
+      'title': 'Family Locator',
+      'subtitle': '2 members',
+      'details': 'Active now',
+      'icon': Icons.location_on,
+      'color': Colors.orangeAccent,
+      'screen': FamilyAppHomeScreen(),
+    },
+    {
+      'title': 'My Diary',
+      'subtitle': '5 entries',
+      'details': 'Updated today',
+      'icon': Icons.book,
+      'color': Colors.purpleAccent,
+      'screen': DiaryHomePage(),
+    },
+    {
+      'title': 'Dates to Remember',
+      'subtitle': '3 dates',
+      'details': 'Next: Anniversary',
+      'icon': Icons.calendar_today,
+      'color': Colors.greenAccent,
+      'screen': MobileScreenLayout(),
+    },
+    {
+      'title': 'To-Do',
+      'subtitle': '7 tasks',
+      'details': '2 overdue',
+      'icon': Icons.check_circle,
+      'color': Colors.blueAccent,
+      'screen': todo.HomeScreen(),
+    },
+    {
+      'title': 'Document Management',
+      'subtitle': '12 files',
+      'details': 'Last added: Today',
+      'icon': Icons.folder,
+      'color': Colors.tealAccent,
+      'screen': DocumentScreen(),
+    },
+    {
+      'title': 'Password Manager',
+      'subtitle': '15 passwords',
+      'details': 'All secure',
+      'icon': Icons.lock,
+      'color': Colors.redAccent,
+      'screen': PasswordDashboardScreen(),
+    },
+    {
+      'title': 'Finance Tracker',
+      'subtitle': 'Budget updated',
+      'details': 'This month',
+      'icon': Icons.attach_money,
+      'color': Colors.orange,
+      'screen': HomepageScreen(),
+    },
+    {
+      'title': 'Vehicle Manager',
+      'subtitle': '2 vehicles',
+      'details': 'Next service: 15 May',
+      'icon': Icons.directions_car,
+      'color': Colors.indigoAccent,
+      'screen': VehicleDasboardBottomScreen(),
+    },
   ];
-
-  List<_FeatureBox> _filteredFeatures = [];
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _filteredFeatures = _allFeatures;
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  void _onSearchChanged() {
-    setState(() {
-      _filteredFeatures =
-          _allFeatures
-              .where(
-                (f) => f.title.toLowerCase().contains(
-                  _searchController.text.toLowerCase(),
-                ),
-              )
-              .toList();
-    });
-  }
-
-  void _onFeatureTap(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home Page')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.builder(
-                itemCount: _filteredFeatures.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
-                ),
-                itemBuilder: (context, index) {
-                  final feature = _filteredFeatures[index];
-                  return GestureDetector(
-                    onTap: () => _onFeatureTap(feature.screen),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: feature.color,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: feature.color.withOpacity(0.5),
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          feature.title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        title: Row(
+          children: [Text('The Johnsons'), Icon(Icons.arrow_drop_down)],
         ),
+        actions: [CircleAvatar(child: Icon(Icons.person)), SizedBox(width: 10)],
+      ),
+      body: Column(
+        children: [
+          Container(
+            margin: EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue[300],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Wed 6 Jan',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                eventItem(
+                  'Swimming Lesson Nina',
+                  '10:30 - 12:30',
+                  Colors.orange,
+                ),
+                eventItem('Girl Cinema', '02:30 - 04:30', Colors.pink),
+                eventItem("Dinner at Granny's", '07:30 - 09:00', Colors.blue),
+              ],
+            ),
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.6,
+              ),
+              itemCount: features.length,
+              itemBuilder:
+                  (context, index) => GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => features[index]['screen'],
+                        ),
+                      );
+                    },
+                    child: featureCard(features[index]),
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
-}
 
-class _FeatureBox {
-  final String title;
-  final Color color;
-  final Widget screen;
+  Widget eventItem(String title, String time, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(width: 4, height: 30, color: color),
+          SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                Text(
+                  time,
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  const _FeatureBox(this.title, this.color, this.screen);
-}
-
-class ToDoScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => HomeScreen();
-}
-
-class MyDiaryScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => DiaryHomePage();
-}
-
-class PasswordManagerScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => PasswordDashboardScreen();
-}
-
-class DocumentManagementScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => DocumentScreen();
-}
-
-class FinanceTrackerScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => HomepageScreen();
-}
-
-class DatesToRememberScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => MobileScreenLayout();
-}
-
-class VehicleScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => VehicleDasboardBottomScreen();
-}
-
-class FamilyLocator extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => FamilyAppHomeScreen();
-}
-
-Widget _dummyScreen(String title) {
-  return Scaffold(
-    appBar: AppBar(title: Text(title)),
-    body: Center(
-      child: Text('Welcome to $title screen!', style: TextStyle(fontSize: 22)),
-    ),
-  );
+  Widget featureCard(Map<String, dynamic> feature) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 6,
+            offset: Offset(2, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            feature['title'],
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          Text(
+            feature['subtitle'],
+            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+          ),
+          Text(
+            feature['details'],
+            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              decoration: BoxDecoration(
+                color: feature['color'].withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: EdgeInsets.all(6),
+              child: Icon(feature['icon'], size: 18, color: feature['color']),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
