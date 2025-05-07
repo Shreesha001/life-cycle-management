@@ -10,8 +10,8 @@ import 'package:merge_app/features/health_and_wellness/screens/step_counts_scree
 import 'package:merge_app/features/health_and_wellness/screens/step_counts_screens/step_counter_report_screen.dart';
 import 'package:merge_app/features/health_and_wellness/screens/step_counts_screens/step_counter_screen.dart';
 
-class HomepageScreen extends StatelessWidget {
-  const HomepageScreen({super.key});
+class HealthAndWellnessHomepageScreen extends StatelessWidget {
+  const HealthAndWellnessHomepageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

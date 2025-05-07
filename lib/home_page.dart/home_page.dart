@@ -3,6 +3,7 @@ import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_la
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
+import 'package:merge_app/features/health_and_wellness/screens/homepage_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
@@ -11,14 +12,6 @@ import 'package:merge_app/features/vehicle_manager/screens/vehicle_dasboard_bott
 class HomeScreen extends StatelessWidget {
   final List<Map<String, dynamic>> features = [
     {
-      'title': 'Family Locator',
-      'subtitle': '2 members',
-      'details': 'Active now',
-      'icon': Icons.location_on,
-      'color': Colors.orangeAccent,
-      'screen': FamilyAppHomeScreen(),
-    },
-    {
       'title': 'My Diary',
       'subtitle': '5 entries',
       'details': 'Updated today',
@@ -26,14 +19,7 @@ class HomeScreen extends StatelessWidget {
       'color': Colors.purpleAccent,
       'screen': DiaryHomePage(),
     },
-    {
-      'title': 'Dates to Remember',
-      'subtitle': '3 dates',
-      'details': 'Next: Anniversary',
-      'icon': Icons.calendar_today,
-      'color': Colors.greenAccent,
-      'screen': MobileScreenLayout(),
-    },
+
     {
       'title': 'To-Do',
       'subtitle': '7 tasks',
@@ -49,6 +35,14 @@ class HomeScreen extends StatelessWidget {
       'icon': Icons.folder,
       'color': Colors.tealAccent,
       'screen': DocumentScreen(),
+    },
+    {
+      'title': 'Family Locator',
+      'subtitle': '2 members',
+      'details': 'Active now',
+      'icon': Icons.location_on,
+      'color': Colors.orangeAccent,
+      'screen': FamilyAppHomeScreen(),
     },
     {
       'title': 'Password Manager',
@@ -73,6 +67,23 @@ class HomeScreen extends StatelessWidget {
       'icon': Icons.directions_car,
       'color': Colors.indigoAccent,
       'screen': VehicleDasboardBottomScreen(),
+    },
+    {
+      'title': 'Dates to Remember',
+      'subtitle': '3 dates',
+      'details': 'Next: Anniversary',
+      'icon': Icons.calendar_today,
+      'color': Colors.greenAccent,
+      'screen': MobileScreenLayout(),
+    },
+    {
+      'title': 'Health & Wellness',
+      'subtitle': '3 activities',
+      'details': 'Meditation today',
+      'icon': Icons.favorite,
+      'color': Colors.pinkAccent,
+      'screen':
+          HealthAndWellnessHomepageScreen(), // Replace with your actual screen
     },
   ];
 
@@ -187,12 +198,15 @@ class HomeScreen extends StatelessWidget {
       ),
       padding: EdgeInsets.all(12),
       child: Column(
+        mainAxisSize: MainAxisSize.min, // Keep this line to avoid overflow
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             feature['title'],
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            maxLines: 1, // ✅ ADDED
+            overflow: TextOverflow.ellipsis, // ✅ ADDED
           ),
           SizedBox(height: 4),
           Text(
