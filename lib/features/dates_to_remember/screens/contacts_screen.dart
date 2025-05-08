@@ -1,6 +1,6 @@
 import 'package:merge_app/features/dates_to_remember/screens/add_contact_screen.dart';
 import 'package:merge_app/features/dates_to_remember/screens/contact_detailed_screen.dart';
-import 'package:merge_app/features/dates_to_remember/utils/colors.dart';
+import 'package:merge_app/core/colors.dart';
 import 'package:flutter/material.dart';
 
 class ContactsScreen extends StatelessWidget {

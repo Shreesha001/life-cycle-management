@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:merge_app/features/ai_chatbot/screen/ai_chatbot_screen.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
 import 'package:merge_app/features/health_and_wellness/screens/homepage_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
+import 'package:merge_app/features/my_diary/utils/colors.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_dasboard_bottom_screen.dart';
+import 'package:intl/intl.dart';
 
-class HomeScreen extends StatelessWidget {
+String getFormattedDate(DateTime date) {
+  return DateFormat('EEE d MMM').format(date);
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> features = [
     {
       'title': 'My Diary',
@@ -19,7 +31,6 @@ class HomeScreen extends StatelessWidget {
       'color': Colors.purpleAccent,
       'screen': DiaryHomePage(),
     },
-
     {
       'title': 'To-Do',
       'subtitle': '7 tasks',
@@ -41,7 +52,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '2 members',
       'details': 'Active now',
       'icon': Icons.location_on,
-      'color': Colors.orangeAccent,
+      'color': secondaryColor,
       'screen': FamilyAppHomeScreen(),
     },
     {
@@ -82,51 +93,158 @@ class HomeScreen extends StatelessWidget {
       'details': 'Meditation today',
       'icon': Icons.favorite,
       'color': Colors.pinkAccent,
-      'screen':
-          HealthAndWellnessHomepageScreen(), // Replace with your actual screen
+      'screen': HealthAndWellnessHomepageScreen(),
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: primaryColor),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(radius: 30, child: Icon(Icons.person, size: 30)),
+                  SizedBox(height: 10),
+                  Text(
+                    "User Name",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  Text(
+                    "user@email.com",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            drawerSection("User Profile", [
+              "Name",
+              "Mobile number",
+              "Email ID",
+              "Profile photo",
+              "Surname",
+              "Date of birth",
+              "Gender",
+            ]),
+            drawerSection("Family & Shared Access", [
+              "Manage family members",
+              "Role assignment (admin, member)",
+              "Permissions (e.g., access to modules)",
+              "Invite or remove family members",
+            ]),
+            drawerSection("Notification", [
+              "Setting notification frequency",
+              "Default & custom options",
+            ]),
+            drawerSection("Lifestyle Preferences & Settings", [
+              "Interest areas",
+              "Health settings",
+              "Finance settings",
+              "Meal preferences",
+              "Notification preferences",
+            ]),
+            drawerSection("Account & Security", [
+              "Change password",
+              "Biometric login toggle",
+              "Secure Vault access",
+              "Data sync settings",
+              "Two-factor authentication",
+            ]),
+            drawerSection("AI & Personalization Tools", [
+              "Recalibrate personality quiz",
+              "AI assistant settings",
+              "Daily summary/report preferences",
+            ]),
+            drawerSection("Help & Support", [
+              "FAQs",
+              "Contact support",
+              "Feedback & suggestions",
+              "Report a bug",
+            ]),
+            drawerSection("Legal & Logout", [
+              "Privacy policy",
+              "Terms & conditions",
+              "Delete account",
+              "Logout",
+            ]),
+          ],
+        ),
+      ),
+
       appBar: AppBar(
         title: Row(
           children: [Text('The Johnsons'), Icon(Icons.arrow_drop_down)],
         ),
-        actions: [CircleAvatar(child: Icon(Icons.person)), SizedBox(width: 10)],
+        actions: [
+          Builder(
+            builder:
+                (context) => IconButton(
+                  icon: CircleAvatar(child: Icon(Icons.person)),
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
+                ),
+          ),
+          SizedBox(width: 10),
+        ],
       ),
       body: Column(
         children: [
-          Container(
-            margin: EdgeInsets.all(16),
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[300],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Wed 6 Jan',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                eventItem(
-                  'Swimming Lesson Nina',
-                  '10:30 - 12:30',
-                  Colors.orange,
-                ),
-                eventItem('Girl Cinema', '02:30 - 04:30', Colors.pink),
-                eventItem("Dinner at Granny's", '07:30 - 09:00', Colors.blue),
-              ],
+          // Swipable event block with dynamic date
+          SingleChildScrollView(
+            child: Container(
+              height: 240,
+              child: PageView.builder(
+                itemBuilder: (context, index) {
+                  final date = DateTime.now();
+                  return Container(
+                    margin: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[300],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            getFormattedDate(date),
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          eventItem(
+                            'Swimming Lesson Nina',
+                            '10:30 - 12:30',
+                            Colors.orange,
+                          ),
+                          eventItem(
+                            'Girl Cinema',
+                            '02:30 - 04:30',
+                            Colors.pink,
+                          ),
+                          eventItem(
+                            "Dinner at Granny's",
+                            '07:30 - 09:00',
+                            Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
+
+          // Feature Grid
           Expanded(
             child: GridView.builder(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -152,6 +270,15 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AIChatBotScreen()),
+          );
+        },
+        child: Icon(Icons.chat),
       ),
     );
   }
@@ -198,15 +325,15 @@ class HomeScreen extends StatelessWidget {
       ),
       padding: EdgeInsets.all(12),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Keep this line to avoid overflow
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             feature['title'],
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-            maxLines: 1, // ✅ ADDED
-            overflow: TextOverflow.ellipsis, // ✅ ADDED
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 4),
           Text(
@@ -232,4 +359,11 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget drawerSection(String title, List<String> items) {
+  return ExpansionTile(
+    title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+    children: items.map((item) => ListTile(title: Text(item))).toList(),
+  );
 }
