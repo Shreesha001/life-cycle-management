@@ -17,3 +17,5 @@ const iconColor = secondaryColor;
 
 const primarylightColor = Color(0xFFBFC6FF);
 const tileColor = primaryColor;
+
+const errorColor = Colors.red;
