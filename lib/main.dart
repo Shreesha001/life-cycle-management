@@ -1,9 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:merge_app/auth_screens/login_screen.dart';
+import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
 import 'package:merge_app/features/my_diary/utils/colors.dart';
-import 'package:merge_app/home_page.dart/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
   runApp(const MyApp());
 }
 
@@ -48,8 +57,57 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-
-      home: HomeScreen(),
+      home: const AuthWrapper(),
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  User? user;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? currentUser) async {
+      if (currentUser != null) {
+        await currentUser
+            .reload(); // 🔄 Refresh the user's emailVerified status
+        setState(() {
+          user = FirebaseAuth.instance.currentUser;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          user = null;
+          isLoading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (user != null) {
+      // ✅ Either skip this check or use a dedicated email verification screen
+      if (user!.emailVerified) {
+        return const HomepageScreen();
+      } else {
+        return const LoginScreen(); // or show VerifyEmailScreen
+      }
+    }
+
+    return const LoginScreen();
   }
 }
