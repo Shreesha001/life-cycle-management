@@ -66,10 +66,26 @@ class _VehicleDocumentScreenState extends State<VehicleDocumentScreen> {
                     separatorBuilder: (_, __) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       final docs = [
-                        {"title": "RC", "image": "assets/car.jpg"},
-                        {"title": "Insurance", "image": "assets/car.jpg"},
-                        {"title": "PUC", "image": "assets/car.jpg"},
-                        {"title": "Fitness", "image": "assets/car.jpg"},
+                        {
+                          "title": "RC",
+                          "image":
+                              "lib/features/vehicle_manager/assets/car.jpg",
+                        },
+                        {
+                          "title": "Insurance",
+                          "image":
+                              "lib/features/vehicle_manager/assets/car.jpg",
+                        },
+                        {
+                          "title": "PUC",
+                          "image":
+                              "lib/features/vehicle_manager/assets/car.jpg",
+                        },
+                        {
+                          "title": "Fitness",
+                          "image":
+                              "lib/features/vehicle_manager/assets/car.jpg",
+                        },
                       ];
                       return _DocumentCard(
                         title: docs[index]["title"]!,

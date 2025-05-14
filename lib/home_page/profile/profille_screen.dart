@@ -22,7 +22,7 @@ class ProfileScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              secondaryColor,
+              backgroundColor,
               primarylightColor,
               primaryColor.withOpacity(0.8),
             ],
@@ -173,10 +173,10 @@ class ProfileScreen extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: whiteColor,
+              color: Colors.black,
             ),
           ),
-          Icon(Icons.settings, color: whiteColor, size: 28),
+          Icon(Icons.settings, color: Colors.black, size: 28),
         ],
       ),
     );

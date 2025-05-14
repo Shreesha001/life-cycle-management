@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true; // For password visibility toggle
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -104,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevent screen resizing with keyboard
+      resizeToAvoidBottomInset: false,
       body: Container(
         constraints: const BoxConstraints.expand(),
         decoration: BoxDecoration(
@@ -254,6 +255,19 @@ class _LoginScreenState extends State<LoginScreen>
                                   color: textSecondaryColor,
                                 ),
                                 prefixIcon: Icon(Icons.lock, color: iconColor),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: iconColor,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
                                 filled: true,
                                 fillColor: whiteColor.withOpacity(0.4),
                                 border: OutlineInputBorder(
@@ -271,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen>
                               style: GoogleFonts.poppins(
                                 color: textPrimaryColor,
                               ),
-                              obscureText: true,
+                              obscureText: _obscurePassword,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';

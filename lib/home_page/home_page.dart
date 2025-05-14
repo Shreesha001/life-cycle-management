@@ -21,7 +21,6 @@ class HomeScreen extends StatelessWidget {
       'color': Colors.purpleAccent,
       'screen': DiaryHomePage(),
     },
-
     {
       'title': 'To-Do',
       'subtitle': '7 tasks',
@@ -84,17 +83,29 @@ class HomeScreen extends StatelessWidget {
       'details': 'Meditation today',
       'icon': Icons.favorite,
       'color': Colors.pinkAccent,
-      'screen':
-          HealthAndWellnessHomepageScreen(), // Replace with your actual screen
+      'screen': HealthAndWellnessHomepageScreen(),
     },
   ];
 
+  HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final horizontalPadding = size.width * 0.04;
+    final verticalPadding = size.height * 0.02;
+
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Row(
-          children: [Text('The Johnsons'), Icon(Icons.arrow_drop_down)],
+          children: [
+            Text(
+              'The Johnsons',
+              style: TextStyle(fontSize: size.width * 0.045),
+            ),
+            Icon(Icons.arrow_drop_down),
+          ],
         ),
         actions: [
           IconButton(
@@ -103,90 +114,134 @@ class HomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
-            icon: Icon(Icons.person, color: primaryColor),
+            icon: Icon(
+              Icons.person,
+              color: secondaryColor,
+              size: size.width * 0.06,
+            ),
           ),
-
-          const SizedBox(width: 10),
+          SizedBox(width: size.width * 0.02),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            margin: EdgeInsets.all(16),
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[300],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Wed 6 Jan',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                eventItem(
-                  'Swimming Lesson Nina',
-                  '10:30 - 12:30',
-                  Colors.orange,
-                ),
-                eventItem('Girl Cinema', '02:30 - 04:30', Colors.pink),
-                eventItem("Dinner at Granny's", '07:30 - 09:00', Colors.blue),
-              ],
-            ),
+      body: Container(
+        constraints: const BoxConstraints.expand(),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              backgroundColor,
+              primarylightColor,
+              primaryColor.withOpacity(0.8),
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
-          Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.6,
+        ),
+        child: Column(
+          children: [
+            Container(
+              margin: EdgeInsets.all(horizontalPadding),
+              padding: EdgeInsets.all(horizontalPadding),
+              decoration: BoxDecoration(
+                color: Colors.blue[300],
+                borderRadius: BorderRadius.circular(16),
               ),
-              itemCount: features.length,
-              itemBuilder:
-                  (context, index) => GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => features[index]['screen'],
-                        ),
-                      );
-                    },
-                    child: featureCard(features[index]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Wed 6 Jan',
+                    style: TextStyle(
+                      fontSize: size.width * 0.05,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  SizedBox(height: verticalPadding * 0.5),
+                  eventItem(
+                    context,
+                    'Swimming Lesson Nina',
+                    '10:30 - 12:30',
+                    Colors.orange,
+                  ),
+                  eventItem(
+                    context,
+                    'Girl Cinema',
+                    '02:30 - 04:30',
+                    Colors.pink,
+                  ),
+                  eventItem(
+                    context,
+                    "Dinner at Granny's",
+                    '07:30 - 09:00',
+                    Colors.blue,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: size.width < 600 ? 2 : 3,
+                    crossAxisSpacing: horizontalPadding,
+                    mainAxisSpacing: verticalPadding,
+                    childAspectRatio: 1.4,
+                  ),
+                  itemCount: features.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => features[index]['screen'],
+                          ),
+                        );
+                      },
+                      child: featureCard(context, features[index]),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget eventItem(String title, String time, Color color) {
+  Widget eventItem(
+    BuildContext context,
+    String title,
+    String time,
+    Color color,
+  ) {
+    final size = MediaQuery.of(context).size;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Container(width: 4, height: 30, color: color),
-          SizedBox(width: 8),
+          SizedBox(width: size.width * 0.02),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: size.width * 0.035,
+                  ),
                 ),
                 Text(
                   time,
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: size.width * 0.03,
+                  ),
                 ),
               ],
             ),
@@ -196,7 +251,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget featureCard(Map<String, dynamic> feature) {
+  Widget featureCard(BuildContext context, Map<String, dynamic> feature) {
+    final size = MediaQuery.of(context).size;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -209,26 +265,33 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.all(size.width * 0.03),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Keep this line to avoid overflow
-        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             feature['title'],
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-            maxLines: 1, // ✅ ADDED
-            overflow: TextOverflow.ellipsis, // ✅ ADDED
+            style: TextStyle(
+              fontSize: size.width * 0.035,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 4),
           Text(
             feature['subtitle'],
-            style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: size.width * 0.03,
+              color: Colors.grey[600],
+            ),
           ),
           Text(
             feature['details'],
-            style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+            style: TextStyle(
+              fontSize: size.width * 0.027,
+              color: Colors.grey[500],
+            ),
           ),
           Align(
             alignment: Alignment.bottomRight,
@@ -237,8 +300,12 @@ class HomeScreen extends StatelessWidget {
                 color: feature['color'].withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: EdgeInsets.all(6),
-              child: Icon(feature['icon'], size: 18, color: feature['color']),
+              padding: EdgeInsets.all(size.width * 0.015),
+              child: Icon(
+                feature['icon'],
+                size: size.width * 0.05,
+                color: feature['color'],
+              ),
             ),
           ),
         ],
