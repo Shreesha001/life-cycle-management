@@ -139,6 +139,29 @@ class HomeScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
+            // Search Bar
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding * 0.5,
+              ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search features...',
+                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: verticalPadding * 0.5,
+                    horizontal: horizontalPadding,
+                  ),
+                ),
+              ),
+            ),
             Container(
               margin: EdgeInsets.all(horizontalPadding),
               padding: EdgeInsets.all(horizontalPadding),
