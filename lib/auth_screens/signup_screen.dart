@@ -108,7 +108,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             child: Text(
                               'Sign In',
                               style: TextStyle(
-                                color: const Color(0xFF2A3A7B),
+                                color: const Color(0xFF464f84),
                                 fontSize: screenWidth * 0.04,
                               ),
                             ),
@@ -118,11 +118,11 @@ class _SignupScreenState extends State<SignupScreen> {
                             child: Text(
                               'Sign up',
                               style: TextStyle(
-                                color: const Color(0xFF2A3A7B),
+                                color: const Color(0xFF464f84),
                                 fontSize: screenWidth * 0.04,
                                 decoration: TextDecoration.underline,
                                 decorationThickness: 2,
-                                decorationColor: const Color(0xFF2A3A7B),
+                                decorationColor: const Color(0xFF464f84),
                                 decorationStyle: TextDecorationStyle.solid,
 
                                 // Adding padding between text and underline
@@ -146,7 +146,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             style: TextStyle(
                               fontSize: screenWidth * 0.07,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2A3A7B),
+                              color: const Color(0xFF464f84),
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.01),
@@ -154,7 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             'Join us Today',
                             style: TextStyle(
                               fontSize: screenWidth * 0.04,
-                              color: const Color(0xFF2A3A7B),
+                              color: const Color(0xFF464f84),
                             ),
                           ),
                         ],
@@ -187,7 +187,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(
                                     Icons.email,
-                                    color: Color(0xFFFFA726),
+                                    color: Color(0xFFffb74d),
                                   ),
                                   hintText: 'Email',
                                   hintStyle: TextStyle(
@@ -233,14 +233,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(
                                     Icons.lock,
-                                    color: Color(0xFFFFA726),
+                                    color: Color(0xFFffb74d),
                                   ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_off
                                           : Icons.visibility,
-                                      color: const Color(0xFFFFA726),
+                                      color: const Color(0xFFffb74d),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -289,14 +289,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(
                                     Icons.lock,
-                                    color: Color(0xFFFFA726),
+                                    color: Color(0xFFffb74d),
                                   ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscureConfirmPassword
                                           ? Icons.visibility_off
                                           : Icons.visibility,
-                                      color: const Color(0xFFFFA726),
+                                      color: const Color(0xFFffb74d),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -330,13 +330,13 @@ class _SignupScreenState extends State<SignupScreen> {
                             _isLoading
                                 ? const CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF2A3A7B),
+                                    Color(0xFF464f84),
                                   ),
                                 )
                                 : ElevatedButton(
                                   onPressed: _signup,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF2A3A7B),
+                                    backgroundColor: const Color(0xFF464f84),
                                     minimumSize: Size(
                                       double.infinity,
                                       screenHeight * 0.07,
@@ -367,7 +367,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         'Already have an account? Sign In',
                         style: TextStyle(
                           fontSize: screenWidth * 0.04,
-                          color: const Color(0xFF2A3A7B),
+                          color: const Color(0xFF464f84),
                         ),
                       ),
                     ),

@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(
                                     Icons.email,
-                                    color: Color(0xFFFFA726),
+                                    color: Color(0xFFffb74d),
                                   ),
                                   hintText: 'Email',
                                   hintStyle: TextStyle(
@@ -228,14 +228,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 decoration: InputDecoration(
                                   prefixIcon: const Icon(
                                     Icons.lock,
-                                    color: Color(0xFFFFA726),
+                                    color: Color(0xFFffb74d),
                                   ),
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
                                           ? Icons.visibility_off
                                           : Icons.visibility,
-                                      color: const Color(0xFFFFA726),
+                                      color: const Color(0xFFffb74d),
                                     ),
                                     onPressed: () {
                                       setState(() {
