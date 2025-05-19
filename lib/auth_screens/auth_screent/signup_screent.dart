@@ -36,6 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
           password: _passwordController.text.trim(),
         );
         if (mounted) {
+          // Navigate to the home screen or another screen after successful signup
           Navigator.pushReplacementNamed(context, '/home');
         }
       } on FirebaseAuthException catch (e) {
@@ -96,6 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         style: TextStyle(
                           color: const Color(0xFF2A3A7B),
                           fontSize: screenWidth * 0.04,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
@@ -107,12 +109,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           color: const Color(0xFF2A3A7B),
                           fontSize: screenWidth * 0.04,
                           decoration: TextDecoration.underline,
-                          decorationThickness: 2,
-                          decorationColor: const Color(0xFF2A3A7B),
-                          decorationStyle: TextDecorationStyle.solid,
-
-                          // Adding padding between text and underline
-                          // underlinePadding: 2,
                         ),
                       ),
                     ),

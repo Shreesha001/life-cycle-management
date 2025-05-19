@@ -3,8 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/auth_screens/login_screen.dart';
-import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
+import 'package:merge_app/auth_screens/signup_screen.dart';
+import 'package:merge_app/auth_screens/onboarding_screen.dart';
 import 'package:merge_app/features/my_diary/utils/colors.dart';
+import 'package:merge_app/home_page/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +59,16 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const AuthWrapper(),
+      initialRoute: '/onboarding',
+      routes: {
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/auth': (context) => const AuthWrapper(),
+        '/signup': (context) => const SignupScreen(),
+        '/signin': (context) => const LoginScreen(),
+        '/home':
+            (context) =>
+                HomeScreen(), // Updated to point to the correct HomeScreen
+      },
     );
   }
 }
@@ -78,8 +89,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
     super.initState();
     FirebaseAuth.instance.authStateChanges().listen((User? currentUser) async {
       if (currentUser != null) {
-        await currentUser
-            .reload(); // 🔄 Refresh the user's emailVerified status
+        await currentUser.reload();
         setState(() {
           user = FirebaseAuth.instance.currentUser;
           isLoading = false;
@@ -100,11 +110,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
 
     if (user != null) {
-      // ✅ Either skip this check or use a dedicated email verification screen
       if (user!.emailVerified) {
-        return const HomepageScreen();
+        return HomeScreen(); // Updated to navigate to the correct HomeScreen
       } else {
-        return const LoginScreen(); // or show VerifyEmailScreen
+        return const LoginScreen();
       }
     }
 
