@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/features/my_diary/utils/colors.dart';
 import 'package:merge_app/home_page/profile/account_security_screen.dart';
 import 'package:merge_app/home_page/profile/ai_personalization_screen.dart';
-import 'package:merge_app/home_page/profile/family_access_screen.dart';
+import 'package:merge_app/home_page/profile/family_screen.dart';
 import 'package:merge_app/home_page/profile/help_support_screen.dart';
 import 'package:merge_app/home_page/profile/legal_logout_screen.dart';
 import 'package:merge_app/home_page/profile/lifestyle_preferences_screen.dart';
@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
                           () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const FamilyAccessScreen(),
+                              builder: (context) => FamilyScreen(),
                             ),
                           ),
                     ),

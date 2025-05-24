@@ -1,5 +1,5 @@
-import 'package:merge_app/core/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:merge_app/core/colors.dart';
 
 class AddContactsScreen extends StatefulWidget {
   @override

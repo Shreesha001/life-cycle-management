@@ -9,7 +9,7 @@ import 'package:merge_app/features/my_diary/utils/colors.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_dasboard_bottom_screen.dart';
-import 'package:merge_app/home_page/profile/profille_screen.dart';
+import 'package:merge_app/home_page/profile/profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final List<Map<String, dynamic>> features = [
