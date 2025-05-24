@@ -44,7 +44,11 @@ dependencies:
   google_maps_flutter: ^2.12.1
   location: ^8.0.0
   table_calendar: ^3.2.0
-  
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.3
+  cloud_firestore: ^5.6.7
+  app_links: ^6.4.0
+  firebase_dynamic_links: ^6.0.8
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,7 +72,13 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - lib/features/vehicle_manager/assets/car.jpg
+    - lib/features/health_and_wellness/assets/heart_page/heart.png
+    - lib/features/health_and_wellness/assets/period_dates/meditation.jpg
+    - lib/features/health_and_wellness/assets/period_dates/period_img.jpg
+    - assets/onboarding.png
+    - assets/bottom_wave.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -1,6 +1,6 @@
 import 'package:merge_app/features/dates_to_remember/screens/reminder_modal.dart';
 import 'package:merge_app/features/dates_to_remember/screens/todays_events_screen.dart';
-import 'package:merge_app/features/dates_to_remember/utils/colors.dart';
+import 'package:merge_app/core/colors.dart';
 import 'package:flutter/material.dart';
 
 // ✅ Move this to the top

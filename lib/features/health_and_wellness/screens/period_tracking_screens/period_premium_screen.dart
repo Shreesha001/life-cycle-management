@@ -6,18 +6,14 @@ class PeriodPremiumScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-      
-        elevation: 0,
-        backgroundColor: Colors.white,
-      ),
+      appBar: AppBar(elevation: 0, backgroundColor: Colors.white),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
             Image.asset(
-              'assets/period_dates/image/period_img.jpg', // Replace with your actual asset
+              'lib/features/health_and_wellness/assets/period_dates/period_img.jpg', // Replace with your actual asset
               height: 150,
             ),
             const SizedBox(height: 10),

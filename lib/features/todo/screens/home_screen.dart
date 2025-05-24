@@ -1,13 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'add_task_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/core/colors.dart';
+import 'package:merge_app/features/todo/screens/add_task_screen.dart';
 import 'package:merge_app/features/todo/screens/profile_screen.dart';
 import 'package:merge_app/features/todo/screens/task_settings_screen.dart';
 import 'package:merge_app/features/todo/widgets/home_card.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -15,8 +17,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool showCompleted = true;
+  bool showConfirmation = false;
   String sortOption = 'futureToPast';
-  List<Map<String, dynamic>> tasks = [];
 
   @override
   void initState() {
@@ -25,144 +27,121 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadSettings() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      showCompleted = prefs.getBool('showCompleted') ?? true;
-      sortOption = prefs.getString('sortOption') ?? 'futureToPast';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('todo_settings')
+              .doc('settings')
+              .get();
+      if (doc.exists) {
+        setState(() {
+          showCompleted = doc.data()!['showCompleted'] ?? true;
+          showConfirmation = doc.data()!['showConfirmation'] ?? false;
+          sortOption = doc.data()!['sortOption'] ?? 'futureToPast';
+        });
+      }
+    }
   }
 
-  void addTask(String title, String description, DateTime dueDate) {
-    setState(() {
-      tasks.add({
-        'title': title,
-        'description': description,
-        'dueDate': dueDate,
-        'isChecked': false,
-      });
-    });
+  Future<void> _toggleTask(String taskId, bool isCompleted) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('todo')
+          .doc(taskId)
+          .update({'isCompleted': !isCompleted});
+    }
   }
 
-  void toggleTask(int index) {
-    setState(() {
-      tasks[index]['isChecked'] = !(tasks[index]['isChecked'] as bool);
-    });
-  }
+  Future<void> _deleteSelectedTasks() async {
+    if (showConfirmation) {
+      final shouldDelete = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: Text('Confirm Deletion', style: GoogleFonts.poppins()),
+              content: Text(
+                'Are you sure you want to delete selected tasks?',
+                style: GoogleFonts.poppins(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text('Cancel', style: GoogleFonts.poppins()),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(
+                    'Delete',
+                    style: GoogleFonts.poppins(color: errorColor),
+                  ),
+                ),
+              ],
+            ),
+      );
+      if (shouldDelete != true) return;
+    }
 
-  void deleteSelectedTasks() {
-    setState(() {
-      tasks.removeWhere((task) => task['isChecked'] == true);
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('todo')
+              .where('isCompleted', isEqualTo: true)
+              .get();
+      for (var doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selected tasks deleted', style: GoogleFonts.poppins()),
+          backgroundColor: secondaryColor,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final visibleTasks =
-        tasks.where((t) => showCompleted || !(t['isChecked'] as bool)).toList();
-
-    if (sortOption == 'newlyAdded') {
-      visibleTasks.sort((a, b) => tasks.indexOf(b).compareTo(tasks.indexOf(a)));
-    } else if (sortOption == 'dueEarliest') {
-      visibleTasks.sort((a, b) {
-        DateTime da = a['dueDate'];
-        DateTime db = b['dueDate'];
-        return da.compareTo(db);
-      });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: backgroundColor,
+        body: Center(
+          child: Text('Please log in', style: GoogleFonts.poppins()),
+        ),
+      );
     }
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        title: Text("ToDo", style: TextStyle(color: secondaryColor)),
+        backgroundColor: appBarColor,
+        title: Text('ToDo', style: GoogleFonts.poppins(color: secondaryColor)),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+            child: CircleAvatar(
+              backgroundColor: whiteColor.withOpacity(0.3),
+              child: Icon(Icons.person, color: primaryColor),
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
       ),
       body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: () async {
-                  final shouldDelete = await showDialog<bool>(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('Confirm Deletion'),
-                          content: const Text(
-                            'Are you sure you want to delete selected tasks?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text(
-                                'Delete',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                  );
-
-                  if (shouldDelete == true) {
-                    deleteSelectedTasks();
-                  }
-                },
-                icon: const Icon(
-                  Icons.delete_outlined,
-                  color: secondaryColor,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                onPressed:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TaskSettingsScreen(),
-                      ),
-                    ).then((_) => _loadSettings()),
-                icon: const Icon(Icons.menu, color: secondaryColor, size: 30),
-              ),
-            ],
-          ),
-          Expanded(
-            child:
-                visibleTasks.isEmpty
-                    ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Text(
-                          '"The secret of\ngetting ahead is\ngetting started."',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey[600],
-                            height: 1.6,
-                          ),
-                        ),
-                      ),
-                    )
-                    : ListView.builder(
-                      itemCount: visibleTasks.length,
-                      itemBuilder: (context, index) {
-                        final task = visibleTasks[index];
-                        final originalIndex = tasks.indexOf(task);
-                        return HomeCard(
-                          title: task['title'],
-                          description: task['description'],
-                          dueDate: task['dueDate'],
-                          isChecked: task['isChecked'],
-                          onChanged: (_) => toggleTask(originalIndex),
-                        );
-                      },
-                    ),
-          ),
-        ],
+        children: [_buildActionBar(context), _buildTaskList(user.uid)],
       ),
       floatingActionButton: SizedBox(
         height: 65,
@@ -171,14 +150,191 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed:
               () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => AddTaskScreen(onAddTask: addTask),
-                ),
+                MaterialPageRoute(builder: (_) => const AddTaskScreen()),
               ),
           backgroundColor: secondaryColor,
           shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
+          child: Icon(Icons.add, color: whiteColor, size: 28),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionBar(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+          onPressed: _deleteSelectedTasks,
+          icon: const Icon(
+            Icons.delete_outlined,
+            color: secondaryColor,
+            size: 30,
+          ),
+        ),
+        const SizedBox(width: 4),
+        IconButton(
+          onPressed:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TaskSettingsScreen()),
+              ).then((_) => _loadSettings()),
+          icon: const Icon(Icons.menu, color: secondaryColor, size: 30),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskList(String uid) {
+    return Expanded(
+      child: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .collection('todo')
+                .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(color: secondaryColor),
+            );
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading tasks',
+                style: GoogleFonts.poppins(color: textPrimaryColor),
+              ),
+            );
+          }
+          final tasks =
+              snapshot.data?.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return data.containsKey('isCompleted') &&
+                    data.containsKey('title') &&
+                    data.containsKey('description') &&
+                    data.containsKey('dueDate') &&
+                    data.containsKey('createdAt');
+              }).toList() ??
+              [];
+          final visibleTasks =
+              tasks
+                  .where((task) => showCompleted || !task['isCompleted'])
+                  .toList();
+
+          if (sortOption == 'newlyAdded') {
+            visibleTasks.sort(
+              (a, b) => b['createdAt'].compareTo(a['createdAt']),
+            );
+          } else if (sortOption == 'dueEarliest') {
+            visibleTasks.sort((a, b) => a['dueDate'].compareTo(b['dueDate']));
+          } else {
+            visibleTasks.sort((a, b) => b['dueDate'].compareTo(a['dueDate']));
+          }
+
+          if (visibleTasks.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  '"The secret of\ngetting ahead is\ngetting started."',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 34,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[600],
+                    height: 1.6,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: visibleTasks.length,
+            itemBuilder: (context, index) {
+              final task = visibleTasks[index];
+              return Dismissible(
+                key: Key(task.id),
+                background: Container(
+                  color: errorColor,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Icon(Icons.delete, color: whiteColor),
+                ),
+                direction: DismissDirection.endToStart,
+                confirmDismiss:
+                    showConfirmation
+                        ? (direction) async {
+                          final shouldDelete = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: Text(
+                                    'Confirm Deletion',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  content: Text(
+                                    'Are you sure you want to delete this task?',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, false),
+                                      child: Text(
+                                        'Cancel',
+                                        style: GoogleFonts.poppins(),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, true),
+                                      child: Text(
+                                        'Delete',
+                                        style: GoogleFonts.poppins(
+                                          color: errorColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          return shouldDelete;
+                        }
+                        : null,
+                onDismissed: (direction) {
+                  FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(uid)
+                      .collection('todo')
+                      .doc(task.id)
+                      .delete();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Task deleted',
+                        style: GoogleFonts.poppins(),
+                      ),
+                      backgroundColor: secondaryColor,
+                    ),
+                  );
+                },
+                child: HomeCard(
+                  taskId: task.id,
+                  title: task['title'],
+                  description: task['description'],
+                  dueDate: (task['dueDate'] as Timestamp).toDate(),
+                  isCompleted: task['isCompleted'],
+                  showConfirmation: showConfirmation,
+                  onChanged:
+                      (value) => _toggleTask(task.id, task['isCompleted']),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

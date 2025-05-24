@@ -1,18 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/core/colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskSettingsScreen extends StatefulWidget {
   const TaskSettingsScreen({super.key});
 
   @override
-  State<TaskSettingsScreen> createState() => _TaskSettingsScreenState();
+  _TaskSettingsScreenState createState() => _TaskSettingsScreenState();
 }
 
 class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
   bool showCompleted = true;
   bool showConfirmation = false;
-  String sortOption = 'futureToPast'; // default sort option
+  String sortOption = 'futureToPast';
 
   @override
   void initState() {
@@ -20,22 +22,52 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
     _loadSettings();
   }
 
-  // Load the settings from SharedPreferences
-  void _loadSettings() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      showCompleted = prefs.getBool('showCompleted') ?? true;
-      showConfirmation = prefs.getBool('showConfirmation') ?? false;
-      sortOption = prefs.getString('sortOption') ?? 'futureToPast'; // default
-    });
+  Future<void> _loadSettings() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('todo_settings')
+              .doc('settings')
+              .get();
+      if (doc.exists) {
+        setState(() {
+          showCompleted = doc.data()!['showCompleted'] ?? true;
+          showConfirmation = doc.data()!['showConfirmation'] ?? false;
+          sortOption = doc.data()!['sortOption'] ?? 'futureToPast';
+        });
+      }
+    }
   }
 
-  // Save the settings to SharedPreferences
-  void _saveSettings() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('showCompleted', showCompleted);
-    prefs.setBool('showConfirmation', showConfirmation);
-    prefs.setString('sortOption', sortOption);
+  Future<void> _saveSettings() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('todo_settings')
+            .doc('settings')
+            .set({
+              'showCompleted': showCompleted,
+              'showConfirmation': showConfirmation,
+              'sortOption': sortOption,
+            });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error saving settings: $e',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: errorColor,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -46,30 +78,28 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
         backgroundColor: appBarColor,
         elevation: 0,
         iconTheme: const IconThemeData(color: secondaryColor),
-        title: const Text(
+        title: Text(
           'Task Settings',
-          style: TextStyle(color: secondaryColor),
+          style: GoogleFonts.poppins(color: secondaryColor),
         ),
       ),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              "Task Settings",
-              style: TextStyle(
+              'Task Settings',
+              style: GoogleFonts.poppins(
                 color: textPrimaryColor,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-
-          // Toggle 1: Show/Hide Completed Tasks
           SwitchListTile(
-            title: const Text(
-              "Show Completed Tasks",
-              style: TextStyle(color: textPrimaryColor),
+            title: Text(
+              'Show Completed Tasks',
+              style: GoogleFonts.poppins(color: textPrimaryColor),
             ),
             value: showCompleted,
             onChanged: (val) {
@@ -83,12 +113,10 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
               (states) => Colors.grey,
             ),
           ),
-
-          // Toggle 2: Confirmation popup for task deletion
           SwitchListTile(
-            title: const Text(
-              "Display a confirmation popup when deleting a task",
-              style: TextStyle(color: textPrimaryColor),
+            title: Text(
+              'Display a confirmation popup when deleting a task',
+              style: GoogleFonts.poppins(color: textPrimaryColor),
             ),
             value: showConfirmation,
             onChanged: (val) {
@@ -102,15 +130,12 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
               (states) => Colors.grey,
             ),
           ),
-
           const Divider(color: Colors.grey),
-
-          // Sort By section
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
             child: Text(
-              "Sort By",
-              style: TextStyle(
+              'Sort By',
+              style: GoogleFonts.poppins(
                 color: textPrimaryColor,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -126,8 +151,8 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
                       : textPrimaryColor,
             ),
             title: Text(
-              "Newly Added",
-              style: TextStyle(
+              'Newly Added',
+              style: GoogleFonts.poppins(
                 color:
                     sortOption == 'newlyAdded'
                         ? secondaryColor
@@ -143,7 +168,6 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
                     ? const Icon(Icons.check, color: secondaryColor)
                     : null,
           ),
-
           ListTile(
             leading: Icon(
               Icons.date_range,
@@ -153,8 +177,8 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
                       : textPrimaryColor,
             ),
             title: Text(
-              "Due Date (Earliest First)",
-              style: TextStyle(
+              'Due Date (Earliest First)',
+              style: GoogleFonts.poppins(
                 color:
                     sortOption == 'dueEarliest'
                         ? secondaryColor
@@ -170,7 +194,6 @@ class _TaskSettingsScreenState extends State<TaskSettingsScreen> {
                     ? const Icon(Icons.check, color: secondaryColor)
                     : null,
           ),
-
           const Divider(color: Colors.grey),
         ],
       ),

@@ -16,7 +16,7 @@ class _HomepagePeriodScreenState extends State<HomepagePeriodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-     
+
       body: Column(
         children: [
           const SizedBox(height: 30),
@@ -24,7 +24,7 @@ class _HomepagePeriodScreenState extends State<HomepagePeriodScreen> {
             alignment: Alignment.center,
             children: [
               Image.asset(
-                'assets/period_dates/image/period_img.jpg', // Use your image from your assets
+                'lib/features/health_and_wellness/assets/period_dates/period_img.jpg', // Use your image from your assets
                 height: 200,
                 fit: BoxFit.cover,
               ),

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "226050512443",
+    "firebase_url": "https://lifecycle-management-app-459ea-default-rtdb.firebaseio.com",
+    "project_id": "lifecycle-management-app-459ea",
+    "storage_bucket": "lifecycle-management-app-459ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:226050512443:android:9c0d2e470cafce19ad2e1e",
+        "android_client_info": {
+          "package_name": "com.example.merge_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKTxDcdSkqbMrYzoQ35gZ2fzO-4CEWuPo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
