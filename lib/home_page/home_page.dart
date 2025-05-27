@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:merge_app/core/colors.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
 import 'package:merge_app/features/health_and_wellness/screens/homepage_screen.dart';
 import 'package:merge_app/features/my_diary/screens/dairy_home_page.dart';
-import 'package:merge_app/features/my_diary/utils/colors.dart';
 import 'package:merge_app/features/password_manager/screens/password_dashboard_screen.dart';
 import 'package:merge_app/features/todo/screens/home_screen.dart' as todo;
 import 'package:merge_app/features/vehicle_manager/screens/vehicle_dasboard_bottom_screen.dart';
@@ -18,7 +18,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '5 entries',
       'details': 'Updated today',
       'icon': Icons.book,
-      'color': Colors.purpleAccent,
+      'color': secondaryColor,
       'screen': DiaryHomePage(),
     },
     {
@@ -26,15 +26,15 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '7 tasks',
       'details': '2 overdue',
       'icon': Icons.check_circle,
-      'color': Colors.blueAccent,
+      'color': secondaryColor,
       'screen': todo.HomeScreen(),
     },
     {
-      'title': 'Document Management',
-      'subtitle': '12 files',
+      'title': 'Document Manager',
+      'subtitle': '5 entries',
       'details': 'Last added: Today',
       'icon': Icons.folder,
-      'color': Colors.tealAccent,
+      'color': secondaryColor,
       'screen': DocumentScreen(),
     },
     {
@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '2 members',
       'details': 'Active now',
       'icon': Icons.location_on,
-      'color': Colors.orangeAccent,
+      'color': secondaryColor,
       'screen': FamilyAppHomeScreen(),
     },
     {
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '15 passwords',
       'details': 'All secure',
       'icon': Icons.lock,
-      'color': Colors.redAccent,
+      'color': secondaryColor,
       'screen': PasswordDashboardScreen(),
     },
     {
@@ -58,7 +58,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': 'Budget updated',
       'details': 'This month',
       'icon': Icons.attach_money,
-      'color': Colors.orange,
+      'color': secondaryColor,
       'screen': HomepageScreen(),
     },
     {
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '2 vehicles',
       'details': 'Next service: 15 May',
       'icon': Icons.directions_car,
-      'color': Colors.indigoAccent,
+      'color': secondaryColor,
       'screen': VehicleDasboardBottomScreen(),
     },
     {
@@ -74,7 +74,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '3 dates',
       'details': 'Next: Anniversary',
       'icon': Icons.calendar_today,
-      'color': Colors.greenAccent,
+      'color': secondaryColor,
       'screen': MobileScreenLayout(),
     },
     {
@@ -82,7 +82,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '3 activities',
       'details': 'Meditation today',
       'icon': Icons.favorite,
-      'color': Colors.pinkAccent,
+      'color': secondaryColor,
       'screen': HealthAndWellnessHomepageScreen(),
     },
   ];
@@ -96,15 +96,20 @@ class HomeScreen extends StatelessWidget {
     final verticalPadding = size.height * 0.02;
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        backgroundColor: primaryColor,
         title: Row(
           children: [
+            SizedBox(width: size.width * 0.02),
             Text(
               'The Johnsons',
-              style: TextStyle(fontSize: size.width * 0.045),
+              style: TextStyle(
+                fontSize: size.width * 0.045,
+                color: Colors.white,
+              ),
             ),
-            Icon(Icons.arrow_drop_down),
           ],
         ),
         actions: [
@@ -116,157 +121,221 @@ class HomeScreen extends StatelessWidget {
             },
             icon: Icon(
               Icons.person,
-              color: secondaryColor,
+              color: Colors.white,
               size: size.width * 0.06,
             ),
           ),
           SizedBox(width: size.width * 0.02),
         ],
       ),
-      body: Container(
-        constraints: const BoxConstraints.expand(),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              backgroundColor,
-              primarylightColor,
-              primaryColor.withOpacity(0.8),
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
-        ),
+      body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar
+            // Calendar Header
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
+              ),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24), // Curve only bottom corners
+                  bottomRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.arrow_back_ios,
+                        color: Colors.white,
+                        size: size.width * 0.04,
+                      ),
+                      SizedBox(width: size.width * 0.04),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'MAY 2025',
+                            style: TextStyle(
+                              fontSize: size.width * 0.04,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: size.width * 0.04),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: size.width * 0.04,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: verticalPadding),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildDayBox(context, 'Thu', '22', false),
+                      _buildDayBox(context, 'Fri', '23', true),
+                      _buildDayBox(context, 'Sat', '24', false),
+                      _buildDayBox(context, 'Sun', '25', false),
+                      _buildDayBox(context, 'Mon', '26', false),
+                      _buildDayBox(context, 'Tue', '27', false),
+                      _buildDayBox(context, 'Wed', '28', false),
+                      _buildDayBox(context, 'Thu', '29', false),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Today's Plan Section
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
-                vertical: verticalPadding * 0.5,
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search features...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: verticalPadding * 0.5,
-                    horizontal: horizontalPadding,
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.all(horizontalPadding),
-              padding: EdgeInsets.all(horizontalPadding),
-              decoration: BoxDecoration(
-                color: Colors.blue[300],
-                borderRadius: BorderRadius.circular(16),
+                vertical: verticalPadding,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Wed 6 Jan',
+                    "Today's Plan",
                     style: TextStyle(
                       fontSize: size.width * 0.05,
-                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      color: primaryColor,
                     ),
                   ),
-                  SizedBox(height: verticalPadding * 0.5),
-                  eventItem(
-                    context,
-                    'Swimming Lesson Nina',
-                    '10:30 - 12:30',
-                    Colors.orange,
-                  ),
-                  eventItem(
-                    context,
-                    'Girl Cinema',
-                    '02:30 - 04:30',
-                    Colors.pink,
-                  ),
-                  eventItem(
-                    context,
-                    "Dinner at Granny's",
-                    '07:30 - 09:00',
-                    Colors.blue,
+                  SizedBox(height: verticalPadding),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(horizontalPadding * 1.5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade500,
+                          blurRadius: 12,
+
+                          offset: Offset(3, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildEventItem(context, '1:30', 'Swimming Lesson'),
+                        Divider(color: Colors.grey[300]),
+                        _buildEventItem(context, '2:30', 'Movie with Team'),
+                        Divider(color: Colors.grey[300]),
+                        _buildEventItem(context, '7:30', "Dinner at Granny's"),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: size.width < 600 ? 2 : 3,
-                    crossAxisSpacing: horizontalPadding,
-                    mainAxisSpacing: verticalPadding,
-                    childAspectRatio: 1.4,
-                  ),
-                  itemCount: features.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => features[index]['screen'],
-                          ),
-                        );
-                      },
-                      child: featureCard(context, features[index]),
-                    );
-                  },
+            // Feature Cards Section
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: horizontalPadding,
+                  mainAxisSpacing: verticalPadding,
+                  childAspectRatio: 1.4,
                 ),
+                itemCount: features.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => features[index]['screen'],
+                        ),
+                      );
+                    },
+                    child: featureCard(context, features[index]),
+                  );
+                },
               ),
             ),
+            SizedBox(height: verticalPadding),
           ],
         ),
       ),
     );
   }
 
-  Widget eventItem(
+  Widget _buildDayBox(
     BuildContext context,
-    String title,
-    String time,
-    Color color,
+    String day,
+    String date,
+    bool isSelected,
   ) {
     final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width * 0.1,
+      height: size.width * 0.1,
+      decoration: BoxDecoration(
+        color: isSelected ? secondaryColor : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            day,
+            style: TextStyle(fontSize: size.width * 0.03, color: Colors.white),
+          ),
+          Text(
+            date,
+            style: TextStyle(
+              fontSize: size.width * 0.035,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventItem(BuildContext context, String time, String title) {
+    final size = MediaQuery.of(context).size;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: size.height * 0.01),
       child: Row(
         children: [
-          Container(width: 4, height: 30, color: color),
-          SizedBox(width: size.width * 0.02),
+          Text(
+            time,
+            style: TextStyle(
+              fontSize: size.width * 0.04,
+              color: secondaryColor,
+            ),
+          ),
+          SizedBox(width: size.width * 0.04),
+          Container(
+            width: 2,
+            height: size.height * 0.04,
+            color: Colors.grey[300],
+          ),
+          SizedBox(width: size.width * 0.04),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: size.width * 0.035,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: size.width * 0.03,
-                  ),
-                ),
-              ],
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: size.width * 0.04,
+                color: primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -282,9 +351,9 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 6,
-            offset: Offset(2, 2),
+            color: Colors.grey.shade500,
+            blurRadius: 12,
+            offset: Offset(3, 3),
           ),
         ],
       ),
@@ -298,6 +367,7 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: size.width * 0.035,
               fontWeight: FontWeight.bold,
+              color: primaryColor,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
