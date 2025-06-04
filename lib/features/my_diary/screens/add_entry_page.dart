@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:merge_app/features/my_diary/dairy_services.dart'; 
 import 'package:merge_app/features/my_diary/widgets/bullet_point_picker.dart';
 import 'package:merge_app/features/my_diary/widgets/speech_to_text_screen.dart';
 import 'package:merge_app/features/my_diary/widgets/text_color_picker.dart';
@@ -30,18 +31,17 @@ class _AddEntryPageState extends State<AddEntryPage> {
   String selectedFontFamily = 'Roboto';
   double selectedFontSize = 18;
   String selectedBullet = '*';
+  late DiaryService _diaryService; // Instantiate DiaryService directly
+
   @override
   void initState() {
     super.initState();
-    // Listen for changes in the descController to detect new lines
+    _diaryService = DiaryService(); // Initialize here
     descController.addListener(_handleBulletOnNewLine);
   }
 
-  // Handle bullet insertion whenever a new line is created
   void _handleBulletOnNewLine() {
     final text = descController.text;
-
-    // If the last character is a new line, insert the bullet point
     if (text.endsWith('\n')) {
       descController.text += '$selectedBullet ';
       descController.selection = TextSelection.fromPosition(
@@ -52,8 +52,11 @@ class _AddEntryPageState extends State<AddEntryPage> {
 
   @override
   void dispose() {
-    // Dispose the controller listener
     descController.removeListener(_handleBulletOnNewLine);
+    titleController.dispose();
+    descController.dispose();
+    titleFocus.dispose();
+    descFocus.dispose();
     super.dispose();
   }
 
@@ -85,18 +88,45 @@ class _AddEntryPageState extends State<AddEntryPage> {
               onPressed: () {},
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (titleController.text.isNotEmpty) {
-                  Navigator.pop(context, {
+                  final entry = {
                     "date": DateFormat('dd MMM').format(selectedDate),
                     "title": titleController.text,
                     "desc": descController.text,
                     "emoji": selectedEmoji ?? '',
                     "imagePath": selectedImage?.path ?? '',
                     "hashtags": hashtags,
-                  });
+                  };
+                  try {
+                    await _diaryService.addEntry(entry); // Use local instance
+                    Navigator.pop(context, entry);
+                  } catch (e) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text(
+                            "Error",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          content: Text(
+                            "Failed to save entry: $e",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("OK"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
                 } else {
-                  // Show warning dialog
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -112,7 +142,7 @@ class _AddEntryPageState extends State<AddEntryPage> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
+                              Navigator.of(context).pop();
                             },
                             child: Text("OK"),
                           ),
@@ -124,7 +154,6 @@ class _AddEntryPageState extends State<AddEntryPage> {
               },
               child: Text("SAVE", style: TextStyle(color: Colors.white)),
             ),
-
             SizedBox(width: 8),
           ],
         ),
@@ -191,70 +220,64 @@ class _AddEntryPageState extends State<AddEntryPage> {
                               ),
                             ),
                             backgroundColor: Color(0xFF1E2A47),
-                            builder:
-                                (_) => Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        "How's your day?",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(height: 16),
-                                      Wrap(
-                                        spacing: 12,
-                                        runSpacing: 12,
-                                        children:
-                                            [
-                                              "😐",
-                                              "😊",
-                                              "😁",
-                                              "💖",
-                                              "😃",
-                                              "🙂",
-                                              "😕",
-                                              "😠",
-                                              "😢",
-                                              "😭",
-                                              "😞",
-                                              "😩",
-                                            ].map((emoji) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedEmoji = emoji;
-                                                  });
-                                                  Navigator.pop(context);
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.all(10),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        selectedEmoji == emoji
-                                                            ? Colors
-                                                                .purple
-                                                                .shade200
-                                                            : Colors
-                                                                .transparent,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: Text(
-                                                    emoji,
-                                                    style: TextStyle(
-                                                      fontSize: 28,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                      ),
-                                    ],
+                            builder: (_) => Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "How's your day?",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
+                                  SizedBox(height: 16),
+                                  Wrap(
+                                    spacing: 12,
+                                    runSpacing: 12,
+                                    children: [
+                                      "😐",
+                                      "😊",
+                                      "😁",
+                                      "💖",
+                                      "😃",
+                                      "🙂",
+                                      "😕",
+                                      "😠",
+                                      "😢",
+                                      "😭",
+                                      "😞",
+                                      "😩",
+                                    ].map((emoji) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            selectedEmoji = emoji;
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: selectedEmoji == emoji
+                                                ? Colors.purple.shade200
+                                                : Colors.transparent,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Text(
+                                            emoji,
+                                            style: TextStyle(
+                                              fontSize: 28,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -290,33 +313,31 @@ class _AddEntryPageState extends State<AddEntryPage> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children:
-                              hashtags.map((tag) {
-                                return Container(
-                                  margin: EdgeInsets.only(right: 8),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.1),
-                                    border: Border.all(color: Colors.white70),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    tag,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                          children: hashtags.map((tag) {
+                            return Container(
+                              margin: EdgeInsets.only(right: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                border: Border.all(color: Colors.white70),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),
-
                   if (selectedImage != null) ...[
                     SizedBox(height: 20),
                     ClipRRect(
@@ -382,7 +403,6 @@ class _AddEntryPageState extends State<AddEntryPage> {
                         }
                       },
                     ),
-
                     IconButton(
                       icon: Icon(Icons.text_fields, color: Colors.white),
                       onPressed: () {
@@ -453,8 +473,7 @@ class _AddEntryPageState extends State<AddEntryPage> {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (_) => SpeechToTextScreen(targetField: target),
+                            builder: (_) => SpeechToTextScreen(targetField: target),
                           ),
                         );
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/card_detail_screen.dart'; // Make sure path is correct
+import '../screens/card_detail_screen.dart';
 import '../utils/colors.dart';
 
 class DiarySearchDelegate extends SearchDelegate {
@@ -44,24 +44,22 @@ class DiarySearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    final results =
-        entries.where((entry) {
-          final q = query.toLowerCase();
-          return entry['title'].toLowerCase().contains(q) ||
-              entry['desc'].toLowerCase().contains(q);
-        }).toList();
+    final results = entries.where((entry) {
+      final q = query.toLowerCase();
+      return entry['title'].toLowerCase().contains(q) ||
+          entry['desc'].toLowerCase().contains(q);
+    }).toList();
 
     return _buildEntryList(context, results);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final suggestions =
-        entries.where((entry) {
-          final q = query.toLowerCase();
-          return entry['title'].toLowerCase().contains(q) ||
-              entry['desc'].toLowerCase().contains(q);
-        }).toList();
+    final suggestions = entries.where((entry) {
+      final q = query.toLowerCase();
+      return entry['title'].toLowerCase().contains(q) ||
+          entry['desc'].toLowerCase().contains(q);
+    }).toList();
 
     return _buildEntryList(context, suggestions);
   }
@@ -116,11 +114,9 @@ class DiarySearchDelegate extends SearchDelegate {
               );
 
               if (result == 'delete') {
-                close(context, 'refresh'); // signal caller to refresh
+                close(context, 'refresh');
               } else if (result is Map) {
-                // Update the entry and return
-                final updated = result as Map<String, dynamic>;
-                close(context, updated);
+                close(context, 'refresh');
               }
             },
           ),
