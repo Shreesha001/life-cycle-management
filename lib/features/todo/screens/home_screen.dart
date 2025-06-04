@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   isCompleted: task['isCompleted'],
                   showConfirmation: showConfirmation,
                   onChanged:
-                      (value) => _toggleTask(task.id, task['isCompleted']),
+                      (value) => _toggleTask(task.id, task['isCompleted']), isHighPriority: null,
                 ),
               );
             },
@@ -345,4 +345,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
+} 
