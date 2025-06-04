@@ -123,8 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: appBarColor,
-        title: Text('ToDo', style: GoogleFonts.poppins(color: secondaryColor)),
+        title: Text('ToDo', style: GoogleFonts.poppins(color: Colors.white)),
         actions: [
           GestureDetector(
             onTap: () {
@@ -132,10 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
-            child: CircleAvatar(
-              backgroundColor: whiteColor.withOpacity(0.3),
-              child: Icon(Icons.person, color: primaryColor),
-            ),
+            child: Icon(Icons.person, color: Colors.white),
           ),
           const SizedBox(width: 10),
         ],
@@ -144,19 +142,27 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [_buildActionBar(context), _buildTaskList(user.uid)],
       ),
       floatingActionButton: SizedBox(
-        height: 65,
-        width: 65,
-        child: FloatingActionButton(
-          onPressed:
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddTaskScreen()),
-              ),
-          backgroundColor: secondaryColor,
-          shape: const CircleBorder(),
-          child: Icon(Icons.add, color: whiteColor, size: 28),
-        ),
+  height: 50,
+  width: 50,
+  child: ElevatedButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AddTaskScreen()),
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: secondaryColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8), // Rectangular with slightly rounded corners
       ),
+      padding: EdgeInsets.zero, // Ensures icon is centered
+      elevation: 4,
+    ),
+    child: Icon(Icons.add, color: Colors.white, size: 28),
+  ),
+),
+
     );
   }
 
@@ -238,11 +244,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
-                  '"The secret of\ngetting ahead is\ngetting started."',
-                  textAlign: TextAlign.center,
+                  '"Write it down, Make\nit happen-Start With\na list."',
+                  // textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 34,
                     fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
                     color: Colors.grey[600],
                     height: 1.6,
                   ),
