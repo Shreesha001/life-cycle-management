@@ -135,34 +135,35 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: Icon(Icons.person, color: Colors.white),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [_buildActionBar(context), _buildTaskList(user.uid)],
       ),
       floatingActionButton: SizedBox(
-  height: 50,
-  width: 50,
-  child: ElevatedButton(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AddTaskScreen()),
-      );
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: secondaryColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8), // Rectangular with slightly rounded corners
+        height: 50,
+        width: 50,
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddTaskScreen()),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: secondaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                8,
+              ), // Rectangular with slightly rounded corners
+            ),
+            padding: EdgeInsets.zero, // Ensures icon is centered
+            elevation: 4,
+          ),
+          child: Icon(Icons.add, color: Colors.white, size: 28),
+        ),
       ),
-      padding: EdgeInsets.zero, // Ensures icon is centered
-      elevation: 4,
-    ),
-    child: Icon(Icons.add, color: Colors.white, size: 28),
-  ),
-),
-
     );
   }
 
@@ -336,7 +337,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   isCompleted: task['isCompleted'],
                   showConfirmation: showConfirmation,
                   onChanged:
-                      (value) => _toggleTask(task.id, task['isCompleted']), isHighPriority: null,
+                      (value) => _toggleTask(task.id, task['isCompleted']),
+                  isHighPriority: null,
                 ),
               );
             },
@@ -345,4 +347,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-} 
+}
