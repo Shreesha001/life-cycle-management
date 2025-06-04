@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:merge_app/features/my_diary/dairy_services.dart'; 
 import '../utils/colors.dart';
 
 class CardDetailScreen extends StatefulWidget {
@@ -17,10 +18,12 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   late TextEditingController _descController;
   File? _selectedImage;
   bool _isEditing = false;
+  late DiaryService _diaryService; // Instantiate DiaryService directly
 
   @override
   void initState() {
     super.initState();
+    _diaryService = DiaryService(); // Initialize here
     _titleController = TextEditingController(text: widget.entry['title']);
     _descController = TextEditingController(text: widget.entry['desc']);
 
@@ -56,59 +59,73 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
     });
   }
 
-  void _saveChanges() {
+  void _saveChanges() async {
     setState(() {
       _isEditing = false;
     });
-    Navigator.pop(context, {
+    final updatedEntry = {
       'title': _titleController.text,
       'desc': _descController.text,
       'imagePath': _selectedImage?.path ?? '',
       'date': widget.entry['date'],
       'emoji': widget.entry['emoji'],
-      'hashtags': widget.entry['hashtags'], // Keep hashtags as-is
-    });
+      'hashtags': widget.entry['hashtags'],
+    };
+    try {
+      await _diaryService.updateEntry(widget.entry['id'], updatedEntry); // Use local instance
+      Navigator.pop(context, updatedEntry);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update entry: $e')),
+      );
+    }
   }
 
   void _deleteEntry() async {
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            title: Text(
-              "Delete Entry",
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-            ),
-            content: Text(
-              "Are you sure you want to delete this entry? This action cannot be undone.",
-              style: TextStyle(color: Colors.black, fontSize: 16),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text("Cancel", style: TextStyle(color: Colors.green)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text("Delete", style: TextStyle(color: whiteColor)),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        title: Text(
+          "Delete Entry",
+          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          "Are you sure you want to delete this entry? This action cannot be undone.",
+          style: TextStyle(color: Colors.black, fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancel", style: TextStyle(color: Colors.green)),
           ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Delete", style: TextStyle(color: whiteColor)),
+          ),
+        ],
+      ),
     );
 
     if (shouldDelete == true) {
-      Navigator.pop(context, 'delete');
+      try {
+        await _diaryService.deleteEntry(widget.entry['id']); // Use local instance
+        Navigator.pop(context, 'delete');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete entry: $e')),
+        );
+      }
     }
   }
 
@@ -142,44 +159,40 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
               _isEditing
                   ? TextField(
-                    controller: _titleController,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Enter title...',
-                      hintStyle: TextStyle(color: Colors.white54),
-                      border: UnderlineInputBorder(
-                        // Thin underline
-                        borderSide: BorderSide(color: Colors.white, width: 1),
-                      ),
-                    ),
-                  )
-                  : Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.white, width: 1),
-                      ), // Thin underline
-                    ),
-                    child: Text(
-                      _titleController.text,
+                      controller: _titleController,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter title...',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        border: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white, width: 1),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.white, width: 1),
+                        ),
+                      ),
+                      child: Text(
+                        _titleController.text,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
               SizedBox(height: 20),
-
-              // Image
               if (_selectedImage != null && _selectedImage!.existsSync())
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -190,56 +203,48 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                   ),
                 ),
               SizedBox(height: 20),
-
-              // Description
               _isEditing
                   ? TextField(
-                    controller: _descController,
-                    maxLines: null,
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Enter description...',
-                      hintStyle: TextStyle(color: Colors.white54),
-                      border: InputBorder.none,
-                    ),
-                  )
+                      controller: _descController,
+                      maxLines: null,
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Enter description...',
+                        hintStyle: TextStyle(color: Colors.white54),
+                        border: InputBorder.none,
+                      ),
+                    )
                   : Text(
-                    _descController.text,
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+                      _descController.text,
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
               SizedBox(height: 20),
-
-              // Hashtags
               if (hashtags.isNotEmpty)
                 Wrap(
                   spacing: 8,
-                  children:
-                      hashtags.map((tag) {
-                        return Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white70),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                  children: hashtags.map((tag) {
+                    return Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white70),
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
-
               SizedBox(height: 30),
-
-              // Image Picker (only in edit mode)
               if (_isEditing)
                 ElevatedButton.icon(
                   onPressed: _pickImage,
