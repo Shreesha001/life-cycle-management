@@ -20,7 +20,7 @@ class HomeCard extends StatelessWidget {
     required this.dueDate,
     required this.isCompleted,
     required this.showConfirmation,
-    required this.onChanged,
+    required this.onChanged, required isHighPriority,
   });
 
   String getRemainingTime() {
