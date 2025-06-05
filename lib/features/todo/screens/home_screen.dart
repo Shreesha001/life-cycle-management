@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
               );
             },
             child: const Icon(Icons.person, color: Colors.white),
@@ -218,13 +218,13 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
           final tasks = snapshot.data?.docs.where((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                return data.containsKey('isCompleted') &&
-                    data.containsKey('title') &&
-                    data.containsKey('description') &&
-                    data.containsKey('dueDate') &&
-                    data.containsKey('createdAt');
-              }).toList() ??
+            final data = doc.data() as Map<String, dynamic>;
+            return data.containsKey('isCompleted') &&
+                data.containsKey('title') &&
+                data.containsKey('description') &&
+                data.containsKey('dueDate') &&
+                data.containsKey('createdAt');
+          }).toList() ??
               [];
           final visibleTasks =
               tasks.where((task) => showCompleted || !task['isCompleted']).toList();
@@ -313,6 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: HomeCard(
                   taskId: task.id,
                   title: task['title'],
+                  description: task['description'], // Pass description
                   dueDate: (task['dueDate'] as Timestamp).toDate(),
                   isCompleted: task['isCompleted'],
                   showConfirmation: showConfirmation,
