@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:merge_app/core/colors.dart';
+import 'package:merge_app/features/dates_to_remember/home_screen.dart';
 import 'package:merge_app/features/dates_to_remember/responsive/mobile_screen_layout.dart';
+import 'package:merge_app/features/dates_to_remember/utils/home_screen_items.dart';
 import 'package:merge_app/features/document_management/screens/document_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 import 'package:merge_app/features/finance_tracker/screens/homePage/home_page.dart';
@@ -75,7 +77,7 @@ class HomeScreen extends StatelessWidget {
       'details': 'Next: Anniversary',
       'icon': Icons.calendar_today,
       'color': secondaryColor,
-      'screen': MobileScreenLayout(),
+      'screen': HomeScreen2(),
     },
     {
       'title': 'Health & Wellness',
