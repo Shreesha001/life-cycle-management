@@ -9,16 +9,19 @@ class TextColorPicker {
     required OnTextColorSelected onSelected,
   }) {
     final List<Color> textColors = [
-      Colors.white,
-      Colors.pinkAccent,
-      Colors.tealAccent,
-      Colors.amberAccent,
-      Colors.lightBlueAccent,
-      Colors.orangeAccent,
-      Colors.greenAccent,
-      Colors.purpleAccent,
-      Colors.black,
-    ];
+  Colors.white,
+  Colors.black,
+  Colors.pinkAccent,
+  Colors.purpleAccent,
+  Colors.tealAccent,
+  Colors.amberAccent,
+  Colors.lightBlueAccent,
+  Colors.orangeAccent,
+  Colors.greenAccent,
+  Color(0xFFB0BEC5), // soft gray-blue
+  Color(0xFFE1BEE7), // pastel purple
+];
+
 
     showModalBottomSheet(
       context: context,
