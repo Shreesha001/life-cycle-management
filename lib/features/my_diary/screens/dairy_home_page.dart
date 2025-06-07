@@ -26,8 +26,11 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+         iconTheme: IconThemeData(
+    color: Colors.white, 
+  ),
         backgroundColor: appBarColor,
-        title: Text("My Diary", style: TextStyle(color: secondaryColor)),
+        title: Text("My Diary", style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
@@ -59,9 +62,9 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Keep a diary,',
+                      '"The words you write ',
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         fontStyle: FontStyle.italic,
                         color: Colors.black.withOpacity(0.5),
@@ -70,9 +73,9 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'someday it\'ll',
+                      'now will one day hold',
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         fontStyle: FontStyle.italic,
                         color: Colors.black.withOpacity(0.5),
@@ -81,9 +84,9 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'keep you.',
+                      'you together"',
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
                         fontStyle: FontStyle.italic,
                         color: Colors.black.withOpacity(0.5),
@@ -91,15 +94,7 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20),
-                    Text(
-                      '--Mac West',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.4),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                    
                   ],
                 ),
               ),
