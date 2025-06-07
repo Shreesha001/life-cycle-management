@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:merge_app/features/my_diary/dairy_services.dart';
 import 'package:merge_app/features/my_diary/screens/add_entry_page.dart';
 import 'package:merge_app/features/my_diary/screens/card_detail_screen.dart';
-import 'package:merge_app/features/my_diary/screens/search_screen.dart'; 
+import 'package:merge_app/features/my_diary/screens/search_screen.dart';
 import 'package:merge_app/features/my_diary/utils/colors.dart';
 import 'dart:io';
 
@@ -13,12 +13,12 @@ class DiaryHomePage extends StatefulWidget {
 
 class _DiaryHomePageState extends State<DiaryHomePage> {
   TextEditingController searchController = TextEditingController();
-  late DiaryService _diaryService; // Instantiate DiaryService directly
+  late DiaryService _diaryService;
 
   @override
   void initState() {
     super.initState();
-    _diaryService = DiaryService(); // Initialize here
+    _diaryService = DiaryService();
   }
 
   @override
@@ -26,13 +26,14 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: appBarColor,
-        title: Text("My Diary", style: TextStyle(color: secondaryColor)),
+        title: Text("My Diary", style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () async {
-              final entries = await _diaryService.getEntries().first; // Fetch entries for search
+              final entries = await _diaryService.getEntries().first;
               showSearch(
                 context: context,
                 delegate: DiarySearchDelegate(entries),
@@ -41,188 +42,209 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _diaryService.getEntries(), // Use local instance
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final entries = snapshot.data ?? [];
-          if (entries.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Keep a diary,',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'someday it\'ll',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'keep you.',
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      '--Mac West',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.4),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: entries.length,
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return GestureDetector(
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CardDetailScreen(entry: entry),
-                    ),
-                  );
-
-                  if (result == 'delete') {
-                    // No need to update local state since StreamBuilder will handle it
-                  } else if (result is Map<String, dynamic>) {
-                    // No need to update local state since StreamBuilder will handle it
-                  }
-                },
-                child: Card(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              entry["date"] ?? '',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: whiteColor,
-                              ),
-                            ),
-                            Text(
-                              entry["emoji"] ?? '',
-                              style: TextStyle(fontSize: 22),
-                            ),
-                          ],
+      body: Padding(
+        padding:const EdgeInsets.only(top: 16.0),
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _diaryService.getEntries(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            final entries = snapshot.data ?? [];
+            if (entries.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '"The words you write ',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
                         ),
-                        SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (entry["imagePath"] != null &&
-                                entry["imagePath"].isNotEmpty &&
-                                File(entry["imagePath"]).existsSync())
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  File(entry["imagePath"]),
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry["title"] ?? '',
-                                    style: TextStyle(
-                                      color: whiteColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    entry["desc"] ?? '',
-                                    style: TextStyle(
-                                      color: whiteColor.withOpacity(0.8),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'now will one day hold',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
                         ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'you together"',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20),
+                    ],
                   ),
                 ),
               );
-            },
-          );
-        },
-      ),
-      floatingActionButton: SizedBox(
-        width: 80,
-        height: 80,
-        child: FloatingActionButton(
-          onPressed: () async {
-            final newEntry = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddEntryPage()),
-            );
-
-            if (newEntry != null) {
-              // No need to add to local state since Firestore will handle it
             }
-          },
-          child: Icon(Icons.add, size: 40),
-          backgroundColor: Colors.blueAccent,
-          shape: CircleBorder(),
+            return ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CardDetailScreen(entry: entry),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: GestureDetector(
+            onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CardDetailScreen(entry: entry),
+          ),
+        );
+            },
+            child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+        color: Colors.grey.withOpacity(0.15),
+        width: 1,
+            ),
+            boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
         ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry["title"] ?? '',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Until ${entry["date"] ?? ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          entry["emoji"] ?? '',
+          style: const TextStyle(fontSize: 22),
+        ),
+            ],
+          ),
+        ),
+        
+          ),
+        ),
+        
+                );
+              },
+            );
+          },
+        ),
+      ),
+
+      /// 🌟 Floating Action Button with Label Above
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: appBarColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'Start Writing\nYour Day',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          CustomPaint(
+            size: Size(20, 10),
+            painter: TrianglePainter(color: primaryColor),
+          ),
+          SizedBox(height: 5,),
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: FloatingActionButton(
+              onPressed: () async {
+                final newEntry = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddEntryPage()),
+                );
+              },
+              child: Icon(Icons.edit_note, size: 40),
+              backgroundColor: Colors.orangeAccent,
+              shape: CircleBorder(),
+            ),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
+}
+
+/// 🎯 Triangle painter for speech bubble tail
+class TrianglePainter extends CustomPainter {
+  final Color color;
+  TrianglePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
