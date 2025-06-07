@@ -42,152 +42,148 @@ class _DiaryHomePageState extends State<DiaryHomePage> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: _diaryService.getEntries(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final entries = snapshot.data ?? [];
-          if (entries.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '"The words you write ',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'now will one day hold',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'you together"',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: entries.length,
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return GestureDetector(
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CardDetailScreen(entry: entry),
-                    ),
-                  );
-                },
-                child: Card(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              entry["date"] ?? '',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: whiteColor,
-                              ),
-                            ),
-                            Text(
-                              entry["emoji"] ?? '',
-                              style: TextStyle(fontSize: 22),
-                            ),
-                          ],
+      body: Padding(
+        padding:const EdgeInsets.only(top: 16.0),
+        child: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _diaryService.getEntries(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            final entries = snapshot.data ?? [];
+            if (entries.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '"The words you write ',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
                         ),
-                        SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (entry["imagePath"] != null &&
-                                entry["imagePath"].isNotEmpty &&
-                                File(entry["imagePath"]).existsSync())
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  File(entry["imagePath"]),
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry["title"] ?? '',
-                                    style: TextStyle(
-                                      color: whiteColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    entry["desc"] ?? '',
-                                    style: TextStyle(
-                                      color: whiteColor.withOpacity(0.8),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'now will one day hold',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
                         ),
-                      ],
-                    ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'you together"',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black.withOpacity(0.5),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20),
+                    ],
                   ),
                 ),
               );
+            }
+            return ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CardDetailScreen(entry: entry),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: GestureDetector(
+            onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CardDetailScreen(entry: entry),
+          ),
+        );
             },
-          );
-        },
+            child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+        color: Colors.grey.withOpacity(0.15),
+        width: 1,
+            ),
+            boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                entry["title"] ?? '',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Until ${entry["date"] ?? ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          entry["emoji"] ?? '',
+          style: const TextStyle(fontSize: 22),
+        ),
+            ],
+          ),
+        ),
+        
+          ),
+        ),
+        
+                );
+              },
+            );
+          },
+        ),
       ),
 
       /// 🌟 Floating Action Button with Label Above
