@@ -8,17 +8,21 @@ class ThemePicker {
     required Color currentColor,
     required OnThemeSelected onSelected,
   }) {
-    final List<Color> themeColors = [
-      Color(0xFF0E1C2F), // original
-      Colors.black,
-      const Color.fromARGB(255, 40, 0, 110),
-      Colors.teal,
-      Colors.blueGrey,
-      Color(0xFF1B1B2F),
-      Color(0xFF263238),
-      Color(0xFF2E3C43),
-      Color(0xFF3E4C59),
-    ];
+   final List<Color> themeColors = [
+  Color(0xFF0E1C2F), // Deep navy (original dark theme)
+  Color(0xFF1E1E2E), // Dark purple/blue hybrid
+  Color(0xFF121212), // Classic dark mode
+  Colors.teal.shade700, // Deep teal
+  Color(0xFF37474F), // Blue-grey
+  Color(0xFF1A237E), // Rich indigo
+  Color(0xFF2C2C54), // Dark lavender-indigo hybrid
+  Color(0xFF223843), // Muted cyan
+  Color(0xFF0F4C75), // Deep steel blue
+  Color(0xFF263238), // Charcoal grey
+  Color(0xFF3E2723), // Earthy deep brown
+];
+
+
 
     showModalBottomSheet(
       context: context,

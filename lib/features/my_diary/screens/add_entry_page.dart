@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:merge_app/features/my_diary/dairy_services.dart'; 
+import 'package:merge_app/features/my_diary/dairy_services.dart';
 import 'package:merge_app/features/my_diary/widgets/bullet_point_picker.dart';
 import 'package:merge_app/features/my_diary/widgets/speech_to_text_screen.dart';
 import 'package:merge_app/features/my_diary/widgets/text_color_picker.dart';
@@ -19,7 +19,7 @@ class _AddEntryPageState extends State<AddEntryPage> {
   TextEditingController descController = TextEditingController();
   String? selectedEmoji;
   File? selectedImage;
-  Color backgroundColor = const Color(0xFF0E1C2F);
+  Color backgroundColor =  Color(0xFF0F4C75);
   Color textColor = Colors.white;
   final FocusNode titleFocus = FocusNode();
   final FocusNode descFocus = FocusNode();
@@ -31,12 +31,12 @@ class _AddEntryPageState extends State<AddEntryPage> {
   String selectedFontFamily = 'Roboto';
   double selectedFontSize = 18;
   String selectedBullet = '*';
-  late DiaryService _diaryService; // Instantiate DiaryService directly
+  late DiaryService _diaryService;
 
   @override
   void initState() {
     super.initState();
-    _diaryService = DiaryService(); // Initialize here
+    _diaryService = DiaryService();
     descController.addListener(_handleBulletOnNewLine);
   }
 
@@ -83,10 +83,7 @@ class _AddEntryPageState extends State<AddEntryPage> {
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
-            IconButton(
-              icon: Icon(Icons.more_vert, color: Colors.white),
-              onPressed: () {},
-            ),
+            
             TextButton(
               onPressed: () async {
                 if (titleController.text.isNotEmpty) {
@@ -97,9 +94,11 @@ class _AddEntryPageState extends State<AddEntryPage> {
                     "emoji": selectedEmoji ?? '',
                     "imagePath": selectedImage?.path ?? '',
                     "hashtags": hashtags,
+                    "backgroundColor": backgroundColor.value, // Added
+                    "textColor": textColor.value, // Added
                   };
                   try {
-                    await _diaryService.addEntry(entry); // Use local instance
+                    await _diaryService.addEntry(entry);
                     Navigator.pop(context, entry);
                   } catch (e) {
                     showDialog(
@@ -175,8 +174,7 @@ class _AddEntryPageState extends State<AddEntryPage> {
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
                           );
-                          if (pickedDate != null &&
-                              pickedDate != selectedDate) {
+                          if (pickedDate != null && pickedDate != selectedDate) {
                             setState(() {
                               selectedDate = pickedDate;
                             });
@@ -362,135 +360,133 @@ class _AddEntryPageState extends State<AddEntryPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.line_weight_rounded,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        ThemePicker.show(
-                          context: context,
-                          currentColor: backgroundColor,
-                          onSelected: (color) {
-                            setState(() {
-                              backgroundColor = color;
-                            });
-                          },
-                        );
-                      },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.line_weight_rounded,
+                      color: Colors.white,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.image_outlined, color: Colors.white),
-                      onPressed: _pickImage,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.star_border, color: Colors.white),
-                      onPressed: () async {
-                        final result = await BulletPointPicker.show(
-                          context: context,
-                          currentBullet: selectedBullet,
-                        );
-                        if (result != null) {
+                    onPressed: () {
+                      ThemePicker.show(
+                        context: context,
+                        currentColor: backgroundColor,
+                        onSelected: (color) {
                           setState(() {
-                            selectedBullet = result;
-                            descController.text += '$selectedBullet ';
-                            descFocus.requestFocus();
+                            backgroundColor = color;
                           });
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.text_fields, color: Colors.white),
-                      onPressed: () {
-                        TextColorPicker.show(
-                          context: context,
-                          currentColor: textColor,
-                          onSelected: (color) {
-                            setState(() {
-                              textColor = color;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.sell_outlined, color: Colors.white),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            TextEditingController tagController =
-                                TextEditingController();
-                            return AlertDialog(
-                              title: Text("Add Hashtag"),
-                              content: TextField(
-                                controller: tagController,
-                                decoration: InputDecoration(
-                                  hintText: "#hashtag",
-                                ),
+                        },
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.image_outlined, color: Colors.white),
+                    onPressed: _pickImage,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.star_border, color: Colors.white),
+                    onPressed: () async {
+                      final result = await BulletPointPicker.show(
+                        context: context,
+                        currentBullet: selectedBullet,
+                      );
+                      if (result != null) {
+                        setState(() {
+                          selectedBullet = result;
+                          descController.text += '$selectedBullet ';
+                          descFocus.requestFocus();
+                        });
+                      }
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.text_fields, color: Colors.white),
+                    onPressed: () {
+                      TextColorPicker.show(
+                        context: context,
+                        currentColor: textColor,
+                        onSelected: (color) {
+                          setState(() {
+                            textColor = color;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.sell_outlined, color: Colors.white),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          TextEditingController tagController =
+                              TextEditingController();
+                          return AlertDialog(
+                            title: Text("Add Hashtag"),
+                            content: TextField(
+                              controller: tagController,
+                              decoration: InputDecoration(
+                                hintText: "#hashtag",
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text("Cancel"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    String tag = tagController.text.trim();
-                                    if (tag.isNotEmpty) {
-                                      setState(() {
-                                        hashtags.add(
-                                          tag.startsWith('#') ? tag : '#$tag',
-                                        );
-                                      });
-                                    }
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text("Add"),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.mic_none_outlined, color: Colors.white),
-                      onPressed: () async {
-                        String target = 'desc';
-                        if (titleFocus.hasFocus) {
-                          target = 'title';
-                        } else if (descFocus.hasFocus) {
-                          target = 'desc';
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  String tag = tagController.text.trim();
+                                  if (tag.isNotEmpty) {
+                                    setState(() {
+                                      hashtags.add(
+                                        tag.startsWith('#') ? tag : '#$tag',
+                                      );
+                                    });
+                                  }
+                                  Navigator.pop(context);
+                                },
+                                child: Text("Add"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.mic_none_outlined, color: Colors.white),
+                    onPressed: () async {
+                      String target = 'desc';
+                      if (titleFocus.hasFocus) {
+                        target = 'title';
+                      } else if (descFocus.hasFocus) {
+                        target = 'desc';
+                      }
+
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SpeechToTextScreen(targetField: target),
+                        ),
+                      );
+
+                      if (result != null && result is Map<String, String>) {
+                        final spokenText = result['text'] ?? '';
+                        final targetField = result['target'] ?? 'desc';
+
+                        if (targetField == 'title') {
+                          titleController.text += spokenText;
+                        } else {
+                          descController.text += spokenText;
                         }
-
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SpeechToTextScreen(targetField: target),
-                          ),
-                        );
-
-                        if (result != null && result is Map<String, String>) {
-                          final spokenText = result['text'] ?? '';
-                          final targetField = result['target'] ?? 'desc';
-
-                          if (targetField == 'title') {
-                            titleController.text += spokenText;
-                          } else {
-                            descController.text += spokenText;
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ),
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           ),
