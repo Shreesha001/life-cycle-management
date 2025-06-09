@@ -1,75 +1,347 @@
-import 'package:merge_app/features/family_locator/screen/invite_option_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:merge_app/core/colors.dart';
+import 'package:merge_app/auth_screens/login_screen.dart';
+import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 
-class InviteScreen extends StatelessWidget {
-  final String inviteCode = "FNEXJ2EZ";
+class InviteScreen extends StatefulWidget {
+  final String? familyId;
+
+  const InviteScreen({super.key, this.familyId});
+
+  @override
+  _InviteScreenState createState() => _InviteScreenState();
+}
+
+class _InviteScreenState extends State<InviteScreen> {
+  String? familyId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      if (widget.familyId != null) {
+        setState(() {
+          familyId = widget.familyId;
+        });
+      } else {
+        await _checkOrCreateFamily();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Initialization error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _checkOrCreateFamily() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+      return;
+    }
+
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('families')
+          .where('members', arrayContains: user.uid)
+          .get();
+
+      if (query.docs.isNotEmpty && mounted) {
+        setState(() {
+          familyId = query.docs.first.id;
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No family found.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error checking family: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _requestMemberLocation(String targetId, String targetName) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || familyId == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('location_requests').doc().set({
+        'familyId': familyId,
+        'requesterId': user.uid,
+        'targetId': targetId,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Location request sent to $targetName')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send location request: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeMember(String memberId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || familyId == null) return;
+
+    if (memberId == user.uid) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You cannot remove yourself from the family')),
+        );
+      }
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Member'),
+        content: const Text('Are you sure you want to remove this member from the family?'),
+        actions: [
+          TextButton(
+            child: Text('Cancel', style: TextStyle(color: primaryColor)),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
+            child: const Text('Remove'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final familyRef = FirebaseFirestore.instance.collection('families').doc(familyId);
+        await familyRef.update({
+          'members': FieldValue.arrayRemove([memberId]),
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Member removed successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to remove member: $e')),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null || _isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      appBar: AppBar(leading: BackButton(), title: Text("Add your family")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Choose an app to send your invitation"),
-            SizedBox(height: 16),
-            InviteOption(icon: Icons.contacts, label: 'Contacts'),
-            InviteOption(icon: Icons.face, label: 'Whatsapp'),
-            InviteOption(icon: Icons.phone, label: 'Phone'),
-            SizedBox(height: 8),
-            TextButton(
-              onPressed: () {},
-              child: Row(
-                children: [
-                  Text("Choose other apps"),
-                  Icon(Icons.arrow_forward),
-                ],
-              ),
-            ),
-            Spacer(),
-            Text("Or just copy the code to your family"),
-            Container(
-              margin: EdgeInsets.only(top: 8),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black26),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      inviteCode,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: inviteCode));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Copied to clipboard")),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.copy, color: Colors.green),
-                        SizedBox(width: 4),
-                        Text("Copy", style: TextStyle(color: Colors.green)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        leading: const BackButton(),
+        title: const Text("Family Members"),
+        backgroundColor: Colors.white,
+        elevation: 2,
+        iconTheme: const IconThemeData(color: primaryColor),
       ),
+      body: familyId == null
+          ? Center(
+              child: Text(
+                'No family selected.',
+                style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 16),
+              ),
+            )
+          : StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('families')
+                  .doc(familyId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: GoogleFonts.poppins(color: Colors.red, fontSize: 16),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return Center(
+                    child: Text(
+                      'No family data found.',
+                      style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  );
+                }
+
+                final familyData = snapshot.data!.data() as Map<String, dynamic>;
+                final List<dynamic> members = familyData['members'] ?? [];
+                final String familyName = familyData['name'] ?? 'Your Family';
+
+                if (members.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No members in the family yet.',
+                      style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        familyName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: members.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final memberId = members[index];
+                            return FutureBuilder<DocumentSnapshot>(
+                              future: FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(memberId)
+                                  .get(),
+                              builder: (context, userSnapshot) {
+                                if (userSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const ListTile(
+                                    title: Text('Loading...'),
+                                    leading: CircleAvatar(child: Icon(Icons.person)),
+                                  );
+                                }
+
+                                if (userSnapshot.hasError) {
+                                  return const ListTile(
+                                    title: Text('Error loading user'),
+                                    leading: CircleAvatar(child: Icon(Icons.error)),
+                                  );
+                                }
+
+                                final userData =
+                                    userSnapshot.data?.data() as Map<String, dynamic>?;
+                                final name = userData?['name'] ?? 'Unknown User';
+
+                                return Card(
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    onTap: () {
+                                      _requestMemberLocation(memberId, name);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FamilyAppHomeScreen(
+                                            selectedMemberId: memberId,
+                                            familyId: familyId,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    leading: CircleAvatar(
+                                      backgroundColor: secondaryColor,
+                                      child: Text(
+                                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      name,
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 18,
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    trailing: memberId == FirebaseAuth.instance.currentUser!.uid
+                                        ? const Text(
+                                            'You',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          )
+                                        : IconButton(
+                                            icon: const Icon(
+                                              Icons.remove_circle_outline,
+                                              color: Colors.redAccent,
+                                            ),
+                                            onPressed: () => _removeMember(memberId),
+                                            tooltip: 'Remove member',
+                                          ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }
