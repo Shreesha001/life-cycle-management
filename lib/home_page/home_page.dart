@@ -76,7 +76,7 @@ class HomeScreen extends StatelessWidget {
       'subtitle': '3 dates',
       'details': 'Next: Anniversary',
       'icon': Icons.calendar_today,
-      'color': secondaryColor,
+      'color': secondaryColor ,
       'screen': HomeScreen2(),
     },
     {
