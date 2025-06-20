@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/core/colors.dart';
-import 'package:merge_app/auth_screens/login_screen.dart';
 import 'package:merge_app/features/family_locator/screen/family_app_home_screen.dart';
 
 class InviteScreen extends StatefulWidget {
@@ -27,13 +26,9 @@ class _InviteScreenState extends State<InviteScreen> {
 
   Future<void> _initialize() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
       if (widget.familyId != null) {
-        setState(() {
-          familyId = widget.familyId;
-        });
+        setState(() => familyId = widget.familyId);
       } else {
         await _checkOrCreateFamily();
       }
@@ -44,11 +39,7 @@ class _InviteScreenState extends State<InviteScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -56,34 +47,22 @@ class _InviteScreenState extends State<InviteScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
+        Navigator.of(context).pushReplacementNamed('/signin');
       }
       return;
     }
 
-    try {
-      final query = await FirebaseFirestore.instance
-          .collection('families')
-          .where('members', arrayContains: user.uid)
-          .get();
+    final query = await FirebaseFirestore.instance
+        .collection('families')
+        .where('members', arrayContains: user.uid)
+        .get();
 
-      if (query.docs.isNotEmpty && mounted) {
-        setState(() {
-          familyId = query.docs.first.id;
-        });
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No family found.')),
-          );
-        }
-      }
-    } catch (e) {
+    if (query.docs.isNotEmpty && mounted) {
+      setState(() => familyId = query.docs.first.id);
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error checking family: $e')),
+          const SnackBar(content: Text('No family found.')),
         );
       }
     }
@@ -112,59 +91,6 @@ class _InviteScreenState extends State<InviteScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to send location request: $e')),
         );
-      }
-    }
-  }
-
-  Future<void> _removeMember(String memberId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || familyId == null) return;
-
-    if (memberId == user.uid) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You cannot remove yourself from the family')),
-        );
-      }
-      return;
-    }
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Member'),
-        content: const Text('Are you sure you want to remove this member from the family?'),
-        actions: [
-          TextButton(
-            child: Text('Cancel', style: TextStyle(color: primaryColor)),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
-            child: const Text('Remove'),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        final familyRef = FirebaseFirestore.instance.collection('families').doc(familyId);
-        await familyRef.update({
-          'members': FieldValue.arrayRemove([memberId]),
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Member removed successfully')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to remove member: $e')),
-          );
-        }
       }
     }
   }
@@ -277,6 +203,7 @@ class _InviteScreenState extends State<InviteScreen> {
                                 final userData =
                                     userSnapshot.data?.data() as Map<String, dynamic>?;
                                 final name = userData?['name'] ?? 'Unknown User';
+                                final isSharing = userData?['isSharing'] ?? false;
 
                                 return Card(
                                   elevation: 4,
@@ -285,7 +212,9 @@ class _InviteScreenState extends State<InviteScreen> {
                                   ),
                                   child: ListTile(
                                     onTap: () {
-                                      _requestMemberLocation(memberId, name);
+                                      if (!isSharing) {
+                                        _requestMemberLocation(memberId, name);
+                                      }
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -314,22 +243,12 @@ class _InviteScreenState extends State<InviteScreen> {
                                         color: primaryColor,
                                       ),
                                     ),
-                                    trailing: memberId == FirebaseAuth.instance.currentUser!.uid
-                                        ? const Text(
-                                            'You',
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                          )
-                                        : IconButton(
-                                            icon: const Icon(
-                                              Icons.remove_circle_outline,
-                                              color: Colors.redAccent,
-                                            ),
-                                            onPressed: () => _removeMember(memberId),
-                                            tooltip: 'Remove member',
-                                          ),
+                                    subtitle: Text(
+                                      isSharing ? 'Sharing Location' : 'Not Sharing',
+                                      style: GoogleFonts.poppins(
+                                        color: isSharing ? Colors.green : Colors.grey[600],
+                                      ),
+                                    ),
                                   ),
                                 );
                               },
