@@ -83,6 +83,7 @@ flutter:
     - lib/features/health_and_wellness/assets/period_dates/period_img.jpg
     - assets/onboarding.png
     - assets/bottom_wave.png
+    - assets/marker.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

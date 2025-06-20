@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,7 +7,7 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:merge_app/core/colors.dart'; 
+import 'package:merge_app/core/colors.dart';
 import 'package:merge_app/features/family_locator/screen/my_drawer_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -33,7 +31,6 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   int? _sharingDuration;
   DateTime? _sharingEndTime;
   BitmapDescriptor? _customMarker;
-  StreamSubscription? _locationSubscription;
 
   @override
   void initState() {
@@ -42,16 +39,9 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     _setupCustomMarker();
   }
 
-  @override
-  void dispose() {
-    _locationSubscription?.cancel();
-    mapController?.dispose();
-    super.dispose();
-  }
-
   Future<void> _setupCustomMarker() async {
     _customMarker = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(48, 48)),
+      const ImageConfiguration(size: Size(18, 18)),
       'assets/marker.png',
     );
   }
@@ -59,16 +49,14 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   Future<void> _initialize() async {
     try {
       setState(() => _isLoading = true);
-      await _requestPermissions();
-      await _fetchFamilyId();
+      await Future.wait([_requestPermissions(), _fetchFamilyId()]);
       await _listenForLocationRequests();
       await _checkSharingStatus();
-      await _fetchUserLocation();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Initialization error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Initialization error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -76,18 +64,17 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   }
 
   Future<void> _requestPermissions() async {
-    final permissions = await [
-      Permission.location,
-      Permission.locationAlways,
-    ].request();
-
-    if (permissions[Permission.location]?.isDenied ?? true  ) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location permissions are required')),
-        );
+    final permissions = [Permission.location, Permission.locationAlways];
+    for (var permission in permissions) {
+      var status = await permission.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permission is required.')),
+          );
+        }
+        return;
       }
-      return;
     }
   }
 
@@ -96,213 +83,26 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     if (user == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User not authenticated')),
+          const SnackBar(content: Text('User not authenticated.')),
         );
       }
       return;
     }
 
-    try {
-      final query = await FirebaseFirestore.instance
-          .collection('families')
-          .where('members', arrayContains: user.uid)
-          .get();
+    final query =
+        await FirebaseFirestore.instance
+            .collection('families')
+            .where('members', arrayContains: user.uid)
+            .get();
 
-      if (query.docs.isNotEmpty) {
-        setState(() => _familyId = widget.familyId ?? query.docs.first.id);
-        await _fetchFamilyMembersLocations();
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No family found')),
-        );
-      }
-    } catch (e) {
+    if (query.docs.isNotEmpty && mounted) {
+      setState(() => _familyId = widget.familyId ?? query.docs.first.id);
+      await _fetchFamilyMembersLocations();
+    } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching family: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _startLocationSharing(int durationMinutes) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || _familyId == null) return;
-
-    try {
-      final endTime = DateTime.now().add(Duration(minutes: durationMinutes));
-      
-      setState(() {
-        _isSharing = true;
-        _sharingDuration = durationMinutes;
-        _sharingEndTime = endTime;
-      });
-
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'isSharing': true,
-        'sharingEndTime': endTime,
-        'familyId': _familyId,
-      }, SetOptions(merge: true));
-
-      final service = FlutterBackgroundService();
-      await service.configure(
-        androidConfiguration: AndroidConfiguration(
-          onStart: onStart,
-          autoStart: true,
-          isForegroundMode: true,
-          notificationChannelId: 'location_channel',
-          foregroundServiceNotificationId: 888,
-          initialNotificationTitle: 'Location Sharing Active',
-          initialNotificationContent: 'Your location is being shared with family members',
-        ),
-        iosConfiguration: IosConfiguration(),
-      );
-      await service.startService();
-
-      // Start location updates
-      _locationSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
-        ),
-      ).listen((position) async {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'location': {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          },
-        }, SetOptions(merge: true));
-      });
-
-      // Schedule automatic stop
-      Future.delayed(Duration(minutes: durationMinutes), () {
-        if (mounted) _stopLocationSharing();
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Location sharing started for $durationMinutes minutes')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error starting sharing: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _stopLocationSharing() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      _locationSubscription?.cancel();
-      
-      setState(() {
-        _isSharing = false;
-        _sharingDuration = null;
-        _sharingEndTime = null;
-      });
-
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'isSharing': false,
-        'sharingEndTime': null,
-      }, SetOptions(merge: true));
-
-       FlutterBackgroundService().invoke('stopService');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location sharing stopped')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error stopping sharing: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _checkSharingStatus() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final data = userDoc.data()!;
-        final isSharing = data['isSharing'] as bool? ?? false;
-        final endTime = data['sharingEndTime']?.toDate();
-
-        if (isSharing && endTime != null && endTime.isAfter(DateTime.now())) {
-          setState(() {
-            _isSharing = true;
-            _sharingEndTime = endTime;
-            _sharingDuration = endTime.difference(DateTime.now()).inMinutes;
-          });
-          
-          // Resume location updates if sharing is active
-          _locationSubscription = Geolocator.getPositionStream(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-              distanceFilter: 10,
-            ),
-          ).listen((position) async {
-            await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-              'location': {
-                'latitude': position.latitude,
-                'longitude': position.longitude,
-                'lastUpdated': FieldValue.serverTimestamp(),
-              },
-            }, SetOptions(merge: true));
-          });
-        } else if (isSharing) {
-          await _stopLocationSharing();
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error checking sharing status: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _fetchUserLocation() async {
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && mounted) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'location': {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'lastUpdated': FieldValue.serverTimestamp(),
-          },
-        }, SetOptions(merge: true));
-
-        setState(() {
-          _initialPosition = LatLng(position.latitude, position.longitude);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching location: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No family found.')));
       }
     }
   }
@@ -310,65 +110,140 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   Future<void> _fetchFamilyMembersLocations() async {
     if (_familyId == null) return;
 
-    try {
-      final familyDoc = await FirebaseFirestore.instance
-          .collection('families')
-          .doc(_familyId!)
-          .get();
-
-      if (!familyDoc.exists) return;
-
-      final members = List<String>.from(familyDoc.data()?['members'] ?? []);
-      Set<Marker> newMarkers = {};
-
-      for (String memberId in members) {
-        if (memberId == FirebaseAuth.instance.currentUser?.uid) continue;
-
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(memberId)
+    final familyDoc =
+        await FirebaseFirestore.instance
+            .collection('families')
+            .doc(_familyId)
             .get();
 
-        if (userDoc.exists) {
-          final userData = userDoc.data()!;
-          final locationData = userData['location'] as Map<String, dynamic>?;
-          final name = userData['name'] as String? ?? 'Unknown User';
-          final isSharing = userData['isSharing'] as bool? ?? false;
+    if (!familyDoc.exists) return;
 
-          if (locationData != null && isSharing) {
-            final lat = locationData['latitude'] as double?;
-            final lng = locationData['longitude'] as double?;
+    final members = List<String>.from(familyDoc['members'] ?? []);
+    Set<Marker> newMarkers = {};
 
-            if (lat != null && lng != null) {
-              final latLng = LatLng(lat, lng);
-              final marker = Marker(
-                markerId: MarkerId(memberId),
-                position: latLng,
-                infoWindow: InfoWindow(
-                  title: name,
-                  snippet: 'Last updated: ${DateTime.now().toString().split('.')[0]}',
-                ),
-                icon: _customMarker ?? BitmapDescriptor.defaultMarker,
-                onTap: () {
-                  mapController?.animateCamera(
-                    CameraUpdate.newLatLngZoom(latLng, 14.0),
-                  );
-                  mapController?.showMarkerInfoWindow(MarkerId(memberId));
-                },
+    for (String memberId in members) {
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(memberId)
+              .get();
+
+      final data = userDoc.data();
+      if (userDoc.exists &&
+          data != null &&
+          data.containsKey('location') &&
+          data.containsKey('isSharing')) {
+        final locationData = data['location'];
+        final isSharing = data['isSharing'] ?? false;
+        final name = data['name'] ?? 'Unknown User';
+
+        final lat = locationData['latitude']?.toDouble();
+        final lng = locationData['longitude']?.toDouble();
+
+        if (lat != null && lng != null && isSharing == true) {
+          final latLng = LatLng(lat, lng);
+          final marker = Marker(
+            markerId: MarkerId(memberId),
+            position: latLng,
+            infoWindow: InfoWindow(
+              title: name,
+              snippet:
+                  'Last updated: ${DateTime.now().toString().split('.')[0]}',
+            ),
+            icon: _customMarker ?? BitmapDescriptor.defaultMarker,
+            onTap: () {
+              mapController?.animateCamera(
+                CameraUpdate.newLatLngZoom(latLng, 14.0),
               );
-              newMarkers.add(marker);
-            }
-          }
+              mapController?.showMarkerInfoWindow(MarkerId(memberId));
+            },
+          );
+          newMarkers.add(marker);
         }
       }
+    }
 
-      if (mounted) setState(() => _markers = newMarkers);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching locations: $e')),
-        );
-      }
+    if (mounted) setState(() => _markers = newMarkers);
+  }
+
+  Future<void> _startLocationSharing(int durationMinutes) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _familyId == null) return;
+
+    setState(() {
+      _isSharing = true;
+      _sharingDuration = durationMinutes;
+      _sharingEndTime = DateTime.now().add(Duration(minutes: durationMinutes));
+    });
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'isSharing': true,
+      'sharingEndTime': _sharingEndTime,
+      'familyId': _familyId,
+    }, SetOptions(merge: true));
+
+    final service = FlutterBackgroundService();
+    await service.configure(
+      androidConfiguration: AndroidConfiguration(
+        onStart: onStart,
+        autoStart: true,
+        isForegroundMode: true,
+        notificationChannelId: 'location_channel',
+        foregroundServiceNotificationId: 888,
+        initialNotificationTitle: 'Location Sharing Active',
+        initialNotificationContent:
+            'Your location is being shared with family members',
+      ),
+      iosConfiguration: IosConfiguration(),
+    );
+    await service.startService();
+
+    Future.delayed(Duration(minutes: durationMinutes), () {
+      if (mounted) _stopLocationSharing();
+    });
+  }
+
+  Future<void> _stopLocationSharing() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _isSharing = false;
+      _sharingDuration = null;
+      _sharingEndTime = null;
+    });
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'isSharing': false,
+      'sharingEndTime': null,
+    }, SetOptions(merge: true));
+
+    FlutterBackgroundService().invoke('stopService');
+  }
+
+  Future<void> _checkSharingStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final userDoc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+    final data = userDoc.data();
+    if (data == null) return;
+
+    final isSharing = data['isSharing'] ?? false;
+    final endTime = data['sharingEndTime']?.toDate();
+
+    if (isSharing && endTime != null && endTime.isAfter(DateTime.now())) {
+      setState(() {
+        _isSharing = true;
+        _sharingEndTime = endTime;
+        _sharingDuration = endTime.difference(DateTime.now()).inMinutes;
+      });
+    } else if (isSharing) {
+      await _stopLocationSharing();
     }
   }
 
@@ -382,65 +257,77 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .listen((snapshot) async {
-      for (var doc in snapshot.docs) {
-        final requesterId = doc['requesterId'];
-        final requestId = doc.id;
+          for (var doc in snapshot.docs) {
+            final requesterId = doc['requesterId'];
+            final requestId = doc.id;
 
-        try {
-          final requesterDoc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(requesterId)
-              .get();
-              
-          final requesterName = requesterDoc['name'] as String? ?? 'Unknown User';
+            final requesterDoc =
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(requesterId)
+                    .get();
+            final requesterName = requesterDoc['name'] ?? 'Unknown User';
 
-          if (mounted) {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Location Request'),
-                content: Text('$requesterName has requested your location. Share for how long?'),
-                actions: [
-                  TextButton(
-                    onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('location_requests')
-                          .doc(requestId)
-                          .update({'status': 'rejected'});
-                      if (mounted) Navigator.pop(context);
-                    },
-                    child: Text('Reject', style: TextStyle(color: primaryColor)),
-                  ),
-                  DropdownButton<int>(
-                    value: 15,
-                    items: [15, 30, 60].map((minutes) => DropdownMenuItem(
-                      value: minutes,
-                      child: Text('$minutes minutes'),
-                    )).toList(),
-                    onChanged: (value) async {
-                      if (value != null) {
-                        await _startLocationSharing(value);
-                        await FirebaseFirestore.instance
-                            .collection('location_requests')
-                            .doc(requestId)
-                            .update({'status': 'accepted'});
-                        if (mounted) Navigator.pop(context);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
+            if (mounted) {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Location Request'),
+                      content: Text(
+                        '$requesterName has requested your location. Share for how long?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('location_requests')
+                                .doc(requestId)
+                                .update({'status': 'rejected'});
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Reject',
+                            style: TextStyle(color: primaryColor),
+                          ),
+                        ),
+                        DropdownButton<int>(
+                          value: 15,
+                          items:
+                              [15, 30, 60]
+                                  .map(
+                                    (minutes) => DropdownMenuItem(
+                                      value: minutes,
+                                      child: Text('$minutes minutes'),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (value) async {
+                            if (value != null) {
+                              await _startLocationSharing(value);
+                              await FirebaseFirestore.instance
+                                  .collection('location_requests')
+                                  .doc(requestId)
+                                  .update({'status': 'accepted'});
+                              Navigator.pop(context);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Location shared for $value minutes!',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+              );
+            }
           }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error handling request: $e')),
-            );
-          }
-        }
-      }
-    });
+        });
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -459,90 +346,121 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         elevation: 1,
         iconTheme: const IconThemeData(color: primaryColor),
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+          builder:
+              (context) => IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
         ),
       ),
       drawer: MyDrawerWidget(familyId: _familyId),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: _initialPosition,
-                    zoom: 14.0,
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Stack(
+                children: [
+                  GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    initialCameraPosition: CameraPosition(
+                      target: _initialPosition,
+                      zoom: 14.0,
+                    ),
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    markers: _markers,
                   ),
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: true,
-                  markers: _markers,
-                ),
-                Positioned(
-                  bottom: 20,
-                  left: 20,
-                  right: 20,
-                  child: Column(
-                    children: [
-                      if (_isSharing)
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
-                              style: GoogleFonts.poppins(color: Colors.green),
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    child: Column(
+                      children: [
+                        if (_isSharing)
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
+                                style: GoogleFonts.poppins(color: Colors.green),
+                              ),
                             ),
                           ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed:
+                              _isSharing
+                                  ? _stopLocationSharing
+                                  : () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: const Text('Share Location'),
+                                            content: const Text(
+                                              'Select sharing duration',
+                                            ),
+                                            actions: [
+                                              DropdownButton<int>(
+                                                value: 15,
+                                                items:
+                                                    [15, 30, 60]
+                                                        .map(
+                                                          (
+                                                            minutes,
+                                                          ) => DropdownMenuItem(
+                                                            value: minutes,
+                                                            child: Text(
+                                                              '$minutes minutes',
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                onChanged: (value) async {
+                                                  if (value != null) {
+                                                    await _startLocationSharing(
+                                                      value,
+                                                    );
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: Text(
+                                                  'Cancel',
+                                                  style: TextStyle(
+                                                    color: primaryColor,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                _isSharing ? Colors.red : Colors.green,
+                          ),
+                          child: Text(
+                            _isSharing
+                                ? 'Stop Sharing'
+                                : 'Start Sharing Location',
+                          ),
                         ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: _isSharing
-                            ? _stopLocationSharing
-                            : () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Share Location'),
-                                    content: const Text('Select sharing duration'),
-                                    actions: [
-                                      DropdownButton<int>(
-                                        value: 15,
-                                        items: [15, 30, 60].map((minutes) => DropdownMenuItem(
-                                          value: minutes,
-                                          child: Text('$minutes minutes'),
-                                        )).toList(),
-                                        onChanged: (value) async {
-                                          if (value != null) {
-                                            await _startLocationSharing(value);
-                                            if (mounted) Navigator.pop(context);
-                                          }
-                                        },
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('Cancel', style: TextStyle(color: primaryColor)),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isSharing ? Colors.red : Colors.green,
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                        child: Text(
-                          _isSharing ? 'Stop Sharing' : 'Start Sharing Location',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
     );
+  }
+
+  @override
+  void dispose() {
+    mapController?.dispose();
+    super.dispose();
   }
 }
 
@@ -557,24 +475,11 @@ void onStart(ServiceInstance service) async {
     return;
   }
 
-  if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
-    });
-
-    service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
-    });
-  }
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-
   Geolocator.getPositionStream(
     locationSettings: const LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 10,
+      timeLimit: Duration(seconds: 5),
     ),
   ).listen((position) async {
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
@@ -584,12 +489,9 @@ void onStart(ServiceInstance service) async {
         'lastUpdated': FieldValue.serverTimestamp(),
       },
     }, SetOptions(merge: true));
+  });
 
-    if (service is AndroidServiceInstance) {
-      service.setForegroundNotificationInfo(
-        title: 'Sharing Location',
-        content: 'Lat: ${position.latitude.toStringAsFixed(4)}, Lng: ${position.longitude.toStringAsFixed(4)}',
-      );
-    }
+  service.on('stopService').listen((event) {
+    service.stopSelf();
   });
 }
