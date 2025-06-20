@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -133,7 +134,8 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         notificationChannelId: 'location_channel',
         foregroundServiceNotificationId: 888,
         initialNotificationTitle: 'Location Sharing Active',
-        initialNotificationContent: 'Your location is being shared with family members',
+        initialNotificationContent: 'Your location is being shared with family members',  
+        
       ),
       iosConfiguration: IosConfiguration(),
     );
@@ -159,7 +161,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
       'sharingEndTime': null,
     }, SetOptions(merge: true));
 
-     FlutterBackgroundService().invoke('stopService');
+    FlutterBackgroundService().invoke('stopService');
   }
 
   Future<void> _checkSharingStatus() async {
