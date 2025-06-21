@@ -8,8 +8,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:merge_app/core/colors.dart';
-import 'package:merge_app/features/family_locator/screen/my_drawer_widget.dart';
+import 'package:merge_app/features/family_locator/screen/my_drawer_widget.dart'; 
 import 'package:permission_handler/permission_handler.dart';
+
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
+
+Future<BitmapDescriptor> getResizedMarkerIcon(String assetPath, int width) async {
+  final ByteData data = await rootBundle.load(assetPath);
+  final codec = await ui.instantiateImageCodec(
+    data.buffer.asUint8List(),
+    targetWidth: width,
+  );
+  final frame = await codec.getNextFrame();
+  final image = frame.image;
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}
 
 class FamilyAppHomeScreen extends StatefulWidget {
   final String? selectedMemberId;
@@ -23,7 +39,7 @@ class FamilyAppHomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<FamilyAppHomeScreen> {
   GoogleMapController? mapController;
-  LatLng _initialPosition = const LatLng(13.0827, 80.2707);
+  LatLng _initialPosition = const LatLng(13.0827, 80.2707); // Default fallback position
   Set<Marker> _markers = {};
   String? _familyId;
   bool _isLoading = true;
@@ -40,26 +56,46 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   }
 
   Future<void> _setupCustomMarker() async {
-    _customMarker = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(18, 18)),
-      'assets/marker.png',
-    );
+    _customMarker = await getResizedMarkerIcon('assets/marker.png', 48); // 48 pixels wide
+    if (mounted) setState(() {});
   }
 
   Future<void> _initialize() async {
     try {
       setState(() => _isLoading = true);
-      await Future.wait([_requestPermissions(), _fetchFamilyId()]);
+      await Future.wait([
+        _requestPermissions(),
+        _fetchFamilyId(),
+        _getCurrentLocation(),
+      ]);
       await _listenForLocationRequests();
       await _checkSharingStatus();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Initialization error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Initialization error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      if (mounted) {
+        setState(() {
+          _initialPosition = LatLng(position.latitude, position.longitude);
+        });
+        mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(_initialPosition, 14.0),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
+      }
     }
   }
 
@@ -89,20 +125,17 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
       return;
     }
 
-    final query =
-        await FirebaseFirestore.instance
-            .collection('families')
-            .where('members', arrayContains: user.uid)
-            .get();
+    final query = await FirebaseFirestore.instance
+        .collection('families')
+        .where('members', arrayContains: user.uid)
+        .get();
 
     if (query.docs.isNotEmpty && mounted) {
       setState(() => _familyId = widget.familyId ?? query.docs.first.id);
       await _fetchFamilyMembersLocations();
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No family found.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No family found.')));
       }
     }
   }
@@ -110,11 +143,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   Future<void> _fetchFamilyMembersLocations() async {
     if (_familyId == null) return;
 
-    final familyDoc =
-        await FirebaseFirestore.instance
-            .collection('families')
-            .doc(_familyId)
-            .get();
+    final familyDoc = await FirebaseFirestore.instance.collection('families').doc(_familyId).get();
 
     if (!familyDoc.exists) return;
 
@@ -122,20 +151,13 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     Set<Marker> newMarkers = {};
 
     for (String memberId in members) {
-      final userDoc =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(memberId)
-              .get();
-
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(memberId).get();
       final data = userDoc.data();
-      if (userDoc.exists &&
-          data != null &&
-          data.containsKey('location') &&
-          data.containsKey('isSharing')) {
+      if (userDoc.exists && data != null && data.containsKey('location') && data.containsKey('isSharing')) {
         final locationData = data['location'];
         final isSharing = data['isSharing'] ?? false;
         final name = data['name'] ?? 'Unknown User';
+        final lastUpdated = (locationData['lastUpdated'] as Timestamp?)?.toDate().toString().split('.')[0] ?? 'Unknown';
 
         final lat = locationData['latitude']?.toDouble();
         final lng = locationData['longitude']?.toDouble();
@@ -147,14 +169,11 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
             position: latLng,
             infoWindow: InfoWindow(
               title: name,
-              snippet:
-                  'Last updated: ${DateTime.now().toString().split('.')[0]}',
+              snippet: 'Last updated: $lastUpdated',
             ),
             icon: _customMarker ?? BitmapDescriptor.defaultMarker,
             onTap: () {
-              mapController?.animateCamera(
-                CameraUpdate.newLatLngZoom(latLng, 14.0),
-              );
+              mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 14.0));
               mapController?.showMarkerInfoWindow(MarkerId(memberId));
             },
           );
@@ -163,7 +182,19 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
       }
     }
 
-    if (mounted) setState(() => _markers = newMarkers);
+    if (mounted) {
+      setState(() {
+        _markers = newMarkers;
+        _showAllInfoWindows(); // Show all InfoWindows after updating markers
+      });
+    }
+  }
+
+  void _showAllInfoWindows() {
+    // Show InfoWindow for all markers
+    for (var marker in _markers) {
+      mapController?.showMarkerInfoWindow(marker.markerId);
+    }
   }
 
   Future<void> _startLocationSharing(int durationMinutes) async {
@@ -191,8 +222,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         notificationChannelId: 'location_channel',
         foregroundServiceNotificationId: 888,
         initialNotificationTitle: 'Location Sharing Active',
-        initialNotificationContent:
-            'Your location is being shared with family members',
+        initialNotificationContent: 'Your location is being shared with family members',
       ),
       iosConfiguration: IosConfiguration(),
     );
@@ -225,11 +255,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final userDoc =
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     final data = userDoc.data();
     if (data == null) return;
 
@@ -257,83 +283,60 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .listen((snapshot) async {
-          for (var doc in snapshot.docs) {
-            final requesterId = doc['requesterId'];
-            final requestId = doc.id;
+      for (var doc in snapshot.docs) {
+        final requesterId = doc['requesterId'];
+        final requestId = doc.id;
 
-            final requesterDoc =
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(requesterId)
-                    .get();
-            final requesterName = requesterDoc['name'] ?? 'Unknown User';
+        final requesterDoc = await FirebaseFirestore.instance.collection('users').doc(requesterId).get();
+        final requesterName = requesterDoc['name'] ?? 'Unknown User';
 
-            if (mounted) {
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('Location Request'),
-                      content: Text(
-                        '$requesterName has requested your location. Share for how long?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () async {
-                            await FirebaseFirestore.instance
-                                .collection('location_requests')
-                                .doc(requestId)
-                                .update({'status': 'rejected'});
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Reject',
-                            style: TextStyle(color: primaryColor),
-                          ),
-                        ),
-                        DropdownButton<int>(
-                          value: 15,
-                          items:
-                              [15, 30, 60]
-                                  .map(
-                                    (minutes) => DropdownMenuItem(
-                                      value: minutes,
-                                      child: Text('$minutes minutes'),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) async {
-                            if (value != null) {
-                              await _startLocationSharing(value);
-                              await FirebaseFirestore.instance
-                                  .collection('location_requests')
-                                  .doc(requestId)
-                                  .update({'status': 'accepted'});
-                              Navigator.pop(context);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Location shared for $value minutes!',
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-              );
-            }
-          }
-        });
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Location Request', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              content: Text('$requesterName has requested your location. Share for how long?', style: GoogleFonts.poppins()),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('location_requests')
+                        .doc(requestId)
+                        .update({'status': 'rejected'});
+                    Navigator.pop(context);
+                  },
+                  child: Text('Reject', style: TextStyle(color: primaryColor)),
+                ),
+                DropdownButton<int>(
+                  value: 15,
+                  items: [15, 30, 60].map((minutes) => DropdownMenuItem(value: minutes, child: Text('$minutes minutes'))).toList(),
+                  onChanged: (value) async {
+                    if (value != null) {
+                      await _startLocationSharing(value);
+                      await FirebaseFirestore.instance
+                          .collection('location_requests')
+                          .doc(requestId)
+                          .update({'status': 'accepted'});
+                      Navigator.pop(context);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Location shared for $value minutes!')));
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    });
   }
 
   void _onMapCreated(GoogleMapController controller) {
     if (mounted) {
       setState(() => mapController = controller);
       _fetchFamilyMembersLocations();
+      _getCurrentLocation(); // Ensure map centers on user location
     }
   }
 
@@ -341,119 +344,95 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Find my family'),
+        title: Text('Find my family', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: primaryColor),
         leading: Builder(
-          builder:
-              (context) => IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
       ),
       drawer: MyDrawerWidget(familyId: _familyId),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Stack(
-                children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialPosition,
-                      zoom: 14.0,
-                    ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    markers: _markers,
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    left: 20,
-                    right: 20,
-                    child: Column(
-                      children: [
-                        if (_isSharing)
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
-                                style: GoogleFonts.poppins(color: Colors.green),
-                              ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(target: _initialPosition, zoom: 14.0),
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                  markers: _markers,
+                  zoomGesturesEnabled: true,
+                  scrollGesturesEnabled: true,
+                  tiltGesturesEnabled: true,
+                  rotateGesturesEnabled: true,
+                ),
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                  child: Column(
+                    children: [
+                      if (_isSharing)
+                        Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
+                              style: GoogleFonts.poppins(color: Colors.green, fontWeight: FontWeight.w500),
                             ),
                           ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed:
-                              _isSharing
-                                  ? _stopLocationSharing
-                                  : () {
-                                    showDialog(
-                                      context: context,
-                                      builder:
-                                          (context) => AlertDialog(
-                                            title: const Text('Share Location'),
-                                            content: const Text(
-                                              'Select sharing duration',
-                                            ),
-                                            actions: [
-                                              DropdownButton<int>(
-                                                value: 15,
-                                                items:
-                                                    [15, 30, 60]
-                                                        .map(
-                                                          (
-                                                            minutes,
-                                                          ) => DropdownMenuItem(
-                                                            value: minutes,
-                                                            child: Text(
-                                                              '$minutes minutes',
-                                                            ),
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                                onChanged: (value) async {
-                                                  if (value != null) {
-                                                    await _startLocationSharing(
-                                                      value,
-                                                    );
-                                                    Navigator.pop(context);
-                                                  }
-                                                },
-                                              ),
-                                              TextButton(
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.pop(context),
-                                                child: Text(
-                                                  'Cancel',
-                                                  style: TextStyle(
-                                                    color: primaryColor,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                  },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                _isSharing ? Colors.red : Colors.green,
-                          ),
-                          child: Text(
-                            _isSharing
-                                ? 'Stop Sharing'
-                                : 'Start Sharing Location',
-                          ),
                         ),
-                      ],
-                    ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: _isSharing
+                            ? _stopLocationSharing
+                            : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Share Location', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                                    content: Text('Select sharing duration', style: GoogleFonts.poppins()),
+                                    actions: [
+                                      DropdownButton<int>(
+                                        value: 15,
+                                        items: [15, 30, 60].map((minutes) => DropdownMenuItem(value: minutes, child: Text('$minutes minutes'))).toList(),
+                                        onChanged: (value) async {
+                                          if (value != null) {
+                                            await _startLocationSharing(value);
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('Cancel', style: TextStyle(color: primaryColor)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isSharing ? Colors.red : Colors.green,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        child: Text(
+                          _isSharing ? 'Stop Sharing' : 'Start Sharing Location',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
     );
   }
 
