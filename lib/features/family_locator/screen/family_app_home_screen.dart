@@ -39,7 +39,7 @@ class FamilyAppHomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<FamilyAppHomeScreen> {
   GoogleMapController? mapController;
-  LatLng _initialPosition = const LatLng(13.0827, 80.2707); // Default fallback position
+  LatLng _initialPosition = const LatLng(13.0827, 80.2707);
   Set<Marker> _markers = {};
   String? _familyId;
   bool _isLoading = true;
@@ -47,6 +47,11 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   int? _sharingDuration;
   DateTime? _sharingEndTime;
   BitmapDescriptor? _customMarker;
+  
+  // New state variables for marker info card
+  LatLng? _selectedMarkerPosition;
+  String? _selectedMarkerName;
+  String? _selectedMarkerLastUpdated;
 
   @override
   void initState() {
@@ -56,7 +61,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
   }
 
   Future<void> _setupCustomMarker() async {
-    _customMarker = await getResizedMarkerIcon('assets/marker.png', 48); // 48 pixels wide
+    _customMarker = await getResizedMarkerIcon('assets/marker.png', 48);
     if (mounted) setState(() {});
   }
 
@@ -167,14 +172,14 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
           final marker = Marker(
             markerId: MarkerId(memberId),
             position: latLng,
-            infoWindow: InfoWindow(
-              title: name,
-              snippet: 'Last updated: $lastUpdated',
-            ),
             icon: _customMarker ?? BitmapDescriptor.defaultMarker,
             onTap: () {
+              setState(() {
+                _selectedMarkerPosition = latLng;
+                _selectedMarkerName = name;
+                _selectedMarkerLastUpdated = lastUpdated;
+              });
               mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 14.0));
-              mapController?.showMarkerInfoWindow(MarkerId(memberId));
             },
           );
           newMarkers.add(marker);
@@ -185,16 +190,117 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     if (mounted) {
       setState(() {
         _markers = newMarkers;
-        _showAllInfoWindows(); // Show all InfoWindows after updating markers
       });
     }
   }
 
-  void _showAllInfoWindows() {
-    // Show InfoWindow for all markers
-    for (var marker in _markers) {
-      mapController?.showMarkerInfoWindow(marker.markerId);
+  Widget _buildMarkerInfoCard() {
+    if (_selectedMarkerPosition == null || 
+        _selectedMarkerName == null || 
+        _selectedMarkerLastUpdated == null) {
+      return const SizedBox.shrink();
     }
+
+    return Positioned(
+      left: MediaQuery.of(context).size.width / 2 - 150,
+      bottom: MediaQuery.of(context).size.height / 2 + 50,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedMarkerPosition = null;
+            _selectedMarkerName = null;
+            _selectedMarkerLastUpdated = null;
+          });
+        },
+        child: Card(
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+  width: 320,
+  padding: const EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    color: primaryColor,
+    borderRadius: BorderRadius.circular(18),
+    boxShadow: [
+      BoxShadow(
+        color: primaryColor.withOpacity(0.3),
+        blurRadius: 10,
+        offset: const Offset(0, 6),
+      ),
+    ],
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Row(
+        children: [
+          Icon(Icons.person_pin_rounded, color: Colors.white, size: 28),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _selectedMarkerName ?? 'Unknown',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedMarkerPosition = null;
+                _selectedMarkerName = null;
+                _selectedMarkerLastUpdated = null;
+              });
+            },
+            child: const Icon(Icons.close, size: 20, color: Colors.white70),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.access_time_filled, size: 20, color: Colors.white70),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Last updated:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _selectedMarkerLastUpdated ?? 'Unknown',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
+        ),
+      ),
+    );
   }
 
   Future<void> _startLocationSharing(int durationMinutes) async {
@@ -336,7 +442,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     if (mounted) {
       setState(() => mapController = controller);
       _fetchFamilyMembersLocations();
-      _getCurrentLocation(); // Ensure map centers on user location
+      _getCurrentLocation();
     }
   }
 
@@ -370,7 +476,15 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
                   scrollGesturesEnabled: true,
                   tiltGesturesEnabled: true,
                   rotateGesturesEnabled: true,
+                  onTap: (position) {
+                    setState(() {
+                      _selectedMarkerPosition = null;
+                      _selectedMarkerName = null;
+                      _selectedMarkerLastUpdated = null;
+                    });
+                  },
                 ),
+                _buildMarkerInfoCard(),
                 Positioned(
                   bottom: 20,
                   left: 20,
