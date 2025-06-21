@@ -17,6 +17,7 @@ class InviteScreen extends StatefulWidget {
 class _InviteScreenState extends State<InviteScreen> {
   String? familyId;
   bool _isLoading = true;
+  Map<String, bool> _sharingStatus = {};
 
   @override
   void initState() {
@@ -31,6 +32,9 @@ class _InviteScreenState extends State<InviteScreen> {
         setState(() => familyId = widget.familyId);
       } else {
         await _checkOrCreateFamily();
+      }
+      if (familyId != null) {
+        await _listenForSharingStatus();
       }
     } catch (e) {
       if (mounted) {
@@ -68,6 +72,56 @@ class _InviteScreenState extends State<InviteScreen> {
     }
   }
 
+  Future<void> _listenForSharingStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || familyId == null) return;
+
+    FirebaseFirestore.instance
+        .collection('families')
+        .doc(familyId)
+        .snapshots()
+        .listen((familySnapshot) async {
+      if (!familySnapshot.exists) return;
+
+      final familyData = familySnapshot.data() as Map<String, dynamic>;
+      final List<dynamic> members = familyData['members'] ?? [];
+
+      for (String memberId in members) {
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(memberId)
+            .snapshots()
+            .listen((userSnapshot) {
+          if (!userSnapshot.exists) return;
+
+          final userData = userSnapshot.data() as Map<String, dynamic>?;
+          final isSharing = userData?['isSharing'] ?? false;
+          final sharingEndTime = userData?['sharingEndTime']?.toDate();
+
+          bool isCurrentlySharing = isSharing &&
+              sharingEndTime != null &&
+              sharingEndTime.isAfter(DateTime.now());
+
+          if (isCurrentlySharing != (_sharingStatus[memberId] ?? false)) {
+            if (mounted) {
+              setState(() {
+                _sharingStatus[memberId] = isCurrentlySharing;
+              });
+            }
+          }
+
+          // Schedule cleanup if sharing has ended
+          if (!isCurrentlySharing && isSharing) {
+            FirebaseFirestore.instance.collection('users').doc(memberId).set({
+              'isSharing': false,
+              'sharingEndTime': null,
+            }, SetOptions(merge: true));
+          }
+        });
+      }
+    });
+  }
+
   Future<void> _requestMemberLocation(String targetId, String targetName) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || familyId == null) return;
@@ -93,6 +147,45 @@ class _InviteScreenState extends State<InviteScreen> {
         );
       }
     }
+  }
+
+  void _showRequestConfirmationDialog(String targetId, String targetName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Request Location',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: primaryColor,
+          ),
+        ),
+        content: Text(
+          'Do you want to request $targetName\'s location?',
+          style: GoogleFonts.poppins(color: Colors.grey[700]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.red),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _requestMemberLocation(targetId, targetName);
+              Navigator.pop(context);
+            },
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(color: primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -203,7 +296,7 @@ class _InviteScreenState extends State<InviteScreen> {
                                 final userData =
                                     userSnapshot.data?.data() as Map<String, dynamic>?;
                                 final name = userData?['name'] ?? 'Unknown User';
-                                final isSharing = userData?['isSharing'] ?? false;
+                                final isSharing = _sharingStatus[memberId] ?? false;
 
                                 return Card(
                                   elevation: 4,
@@ -212,18 +305,7 @@ class _InviteScreenState extends State<InviteScreen> {
                                   ),
                                   child: ListTile(
                                     onTap: () {
-                                      if (!isSharing) {
-                                        _requestMemberLocation(memberId, name);
-                                      }
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => FamilyAppHomeScreen(
-                                            selectedMemberId: memberId,
-                                            familyId: familyId,
-                                          ),
-                                        ),
-                                      );
+                                      _showRequestConfirmationDialog(memberId, name);
                                     },
                                     leading: CircleAvatar(
                                       backgroundColor: secondaryColor,
@@ -248,6 +330,20 @@ class _InviteScreenState extends State<InviteScreen> {
                                       style: GoogleFonts.poppins(
                                         color: isSharing ? Colors.green : Colors.grey[600],
                                       ),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.location_on, color: primaryColor),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => FamilyAppHomeScreen(
+                                              selectedMemberId: memberId,
+                                              familyId: familyId,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 );
