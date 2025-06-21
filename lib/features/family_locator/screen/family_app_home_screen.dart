@@ -62,97 +62,97 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
 
   // Map styles for light and dark modes
   static const String _lightMapStyle = '''
-    [
-      {
-        "elementType": "geometry",
-        "stylers": [{"color": "#f5f5f5"}]
-      },
-      {
-        "elementType": "labels.text.fill",
-        "stylers": [{"color": "#616161"}]
-      },
-      {
-        "elementType": "labels.text.stroke",
-        "stylers": [{"color": "#f5f5f5"}]
-      },
-      {
-        "featureType": "road",
-        "elementType": "geometry",
-        "stylers": [{"color": "#ffffff"}]
-      },
-      {
-        "featureType": "road.arterial",
-        "elementType": "geometry",
-        "stylers": [{"color": "#fdfdfd"}]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "geometry",
-        "stylers": [{"color": "#f8f8f8"}]
-      },
-      {
-        "featureType": "water",
-        "elementType": "geometry",
-        "stylers": [{"color": "#c9c9c9"}]
-      }
-    ]
-  ''';
+      [
+        {
+          "elementType": "geometry",
+          "stylers": [{"color": "#f5f5f5"}]
+        },
+        {
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#616161"}]
+        },
+        {
+          "elementType": "labels.text.stroke",
+          "stylers": [{"color": "#f5f5f5"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry",
+          "stylers": [{"color": "#ffffff"}]
+        },
+        {
+          "featureType": "road.arterial",
+          "elementType": "geometry",
+          "stylers": [{"color": "#fdfdfd"}]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry",
+          "stylers": [{"color": "#f8f8f8"}]
+        },
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{"color": "#c9c9c9"}]
+        }
+      ]
+    ''';
   static const String _darkMapStyle = '''
-    [
-      {
-        "elementType": "geometry",
-        "stylers": [{"color": "#1c2526"}]
-      },
-      {
-        "elementType": "labels.text.fill",
-        "stylers": [{"color": "#b0bec5"}]
-      },
-      {
-        "elementType": "labels.text.stroke",
-        "stylers": [{"color": "#1c2526"}]
-      },
-      {
-        "featureType": "road",
-        "elementType": "geometry",
-        "stylers": [{"color": "#4a4e4d"}]
-      },
-      {
-        "featureType": "road.arterial",
-        "elementType": "geometry",
-        "stylers": [{"color": "#5c6e70"}]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "geometry",
-        "stylers": [{"color": "#627c7f"}]
-      },
-      {
-        "featureType": "water",
-        "elementType": "geometry",
-        "stylers": [{"color": "#2a3b4c"}]
-      },
-      {
-        "featureType": "landscape.natural",
-        "elementType": "geometry",
-        "stylers": [{"color": "#2e3b3c"}]
-      },
-      {
-        "featureType": "poi.park",
-        "elementType": "geometry",
-        "stylers": [{"color": "#3a4a4b"}]
-      },
-      {
-        "featureType": "poi",
-        "elementType": "geometry",
-        "stylers": [{"color": "#3c4e50"}]
-      },
-      {
-        "featureType": "transit",
-        "elementType": "geometry",
-        "stylers": [{"color": "#4a5e61"}]
-      }
-    ]
-  ''';
+      [
+        {
+          "elementType": "geometry",
+          "stylers": [{"color": "#1c2526"}]
+        },
+        {
+          "elementType": "labels.text.fill",
+          "stylers": [{"color": "#b0bec5"}]
+        },
+        {
+          "elementType": "labels.text.stroke",
+          "stylers": [{"color": "#1c2526"}]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry",
+          "stylers": [{"color": "#4a4e4d"}]
+        },
+        {
+          "featureType": "road.arterial",
+          "elementType": "geometry",
+          "stylers": [{"color": "#5c6e70"}]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry",
+          "stylers": [{"color": "#627c7f"}]
+        },
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{"color": "#2a3b4c"}]
+        },
+        {
+          "featureType": "landscape.natural",
+          "elementType": "geometry",
+          "stylers": [{"color": "#2e3b3c"}]
+        },
+        {
+          "featureType": "poi.park",
+          "elementType": "geometry",
+          "stylers": [{"color": "#3a4a4b"}]
+        },
+        {
+          "featureType": "poi",
+          "elementType": "geometry",
+          "stylers": [{"color": "#3c4e50"}]
+        },
+        {
+          "featureType": "transit",
+          "elementType": "geometry",
+          "stylers": [{"color": "#4a5e61"}]
+        }
+      ]
+    ''';
 
   @override
   void initState() {
@@ -198,7 +198,6 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
         _fetchFamilyId(),
         _getCurrentLocation(),
       ]);
-      await _listenForLocationRequests();
       await _checkSharingStatus();
     } catch (e) {
       if (mounted) {
@@ -321,10 +320,7 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
             markerId: MarkerId(memberId),
             position: latLng,
             icon: _customMarker ?? BitmapDescriptor.defaultMarker,
-            infoWindow: InfoWindow(
-              title: name,
-              // snippet: 'Last updated: $lastUpdated',
-            ),
+            infoWindow: InfoWindow(title: name),
             onTap: () {
               setState(() {
                 _selectedMarkerPosition = latLng;
@@ -556,95 +552,6 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
     }
   }
 
-  Future<void> _listenForLocationRequests() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || _familyId == null) return;
-
-    FirebaseFirestore.instance
-        .collection('location_requests')
-        .where('targetId', isEqualTo: user.uid)
-        .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .listen((snapshot) async {
-          for (var doc in snapshot.docs) {
-            final requesterId = doc['requesterId'];
-            final requestId = doc.id;
-
-            final requesterDoc =
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(requesterId)
-                    .get();
-            final requesterName = requesterDoc['name'] ?? 'Unknown User';
-
-            if (mounted) {
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: Text(
-                        'Location Request',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                      ),
-                      content: Text(
-                        '$requesterName has requested your location. Share for how long?',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      backgroundColor:
-                          _isDarkMode ? Colors.grey[800] : Colors.white,
-                      actions: [
-                        TextButton(
-                          onPressed: () async {
-                            await FirebaseFirestore.instance
-                                .collection('location_requests')
-                                .doc(requestId)
-                                .update({'status': 'rejected'});
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Reject',
-                            style: TextStyle(color: primaryColor),
-                          ),
-                        ),
-                        DropdownButton<int>(
-                          value: 15,
-                          items:
-                              [15, 30, 60]
-                                  .map(
-                                    (minutes) => DropdownMenuItem(
-                                      value: minutes,
-                                      child: Text('$minutes minutes'),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) async {
-                            if (value != null) {
-                              await _startLocationSharing(value);
-                              await FirebaseFirestore.instance
-                                  .collection('location_requests')
-                                  .doc(requestId)
-                                  .update({'status': 'accepted'});
-                              Navigator.pop(context);
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Location shared for $value minutes!',
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-              );
-            }
-          }
-        });
-  }
-
   void _onMapCreated(GoogleMapController controller) {
     if (mounted) {
       setState(() => mapController = controller);
@@ -656,182 +563,176 @@ class _HomeScreenState extends State<FamilyAppHomeScreen> {
 
   @override
   Widget build(context) {
-    return MaterialApp(
-      theme: _isDarkMode ? _darkTheme : _lightTheme,
-      debugShowCheckedModeBanner: false, // Disable debug banner
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Find my family',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: primaryColor,
-          // backgroundColor: _isDarkMode ? Colors.grey[850] : Colors.white,
-          elevation: 1,
-          iconTheme: IconThemeData(color: Colors.white),
-          leading: Builder(
-            builder:
-                (context) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(_isDarkMode ? Icons.brightness_7 : Icons.brightness_4),
-              onPressed: _toggleTheme,
-              color: Colors.white,
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Find my family',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        drawer: MyDrawerWidget(familyId: _familyId),
-        body:
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Stack(
-                  children: [
-                    GoogleMap(
-                      onMapCreated: _onMapCreated,
-                      initialCameraPosition: CameraPosition(
-                        target: _initialPosition,
-                        zoom: 14.0,
-                      ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: true,
-                      markers: _markers,
-                      zoomGesturesEnabled: true,
-                      scrollGesturesEnabled: true,
-                      tiltGesturesEnabled: true,
-                      rotateGesturesEnabled: true,
-                      onTap: (position) {
-                        setState(() {
-                          _selectedMarkerPosition = null;
-                          _selectedMarkerName = null;
-                          _selectedMarkerLastUpdated = null;
-                        });
-                      },
+        backgroundColor: primaryColor,
+        elevation: 1,
+        iconTheme: IconThemeData(color: Colors.white),
+        leading: Builder(
+          builder:
+              (context) => IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isDarkMode ? Icons.brightness_7 : Icons.brightness_4),
+            onPressed: _toggleTheme,
+            color: Colors.white,
+          ),
+        ],
+      ),
+      drawer: MyDrawerWidget(familyId: _familyId),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Stack(
+                children: [
+                  GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    initialCameraPosition: CameraPosition(
+                      target: _initialPosition,
+                      zoom: 14.0,
                     ),
-                    _buildMarkerInfoCard(),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
-                      right: 20,
-                      child: Column(
-                        children: [
-                          if (_isSharing)
-                            Card(
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              color:
-                                  _isDarkMode ? Colors.grey[800] : Colors.white,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Text(
-                                  'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
-                                  style: GoogleFonts.poppins(
-                                    color:
-                                        _isDarkMode
-                                            ? Colors.greenAccent
-                                            : Colors.green,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    markers: _markers,
+                    zoomGesturesEnabled: true,
+                    scrollGesturesEnabled: true,
+                    tiltGesturesEnabled: true,
+                    rotateGesturesEnabled: true,
+                    onTap: (position) {
+                      setState(() {
+                        _selectedMarkerPosition = null;
+                        _selectedMarkerName = null;
+                        _selectedMarkerLastUpdated = null;
+                      });
+                    },
+                  ),
+                  _buildMarkerInfoCard(),
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                    child: Column(
+                      children: [
+                        if (_isSharing)
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            color:
+                                _isDarkMode ? Colors.grey[800] : Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Sharing until ${_sharingEndTime?.toString().split('.')[0]}',
+                                style: GoogleFonts.poppins(
+                                  color:
+                                      _isDarkMode
+                                          ? Colors.greenAccent
+                                          : Colors.green,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed:
-                                _isSharing
-                                    ? _stopLocationSharing
-                                    : () {
-                                      showDialog(
-                                        context: context,
-                                        builder:
-                                            (context) => AlertDialog(
-                                              title: Text(
-                                                'Share Location',
-                                                style: GoogleFonts.poppins(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                          ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed:
+                              _isSharing
+                                  ? _stopLocationSharing
+                                  : () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: Text(
+                                              'Share Location',
+                                              style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w600,
                                               ),
-                                              content: Text(
-                                                'Select sharing duration',
-                                                style: GoogleFonts.poppins(),
-                                              ),
-                                              backgroundColor:
-                                                  _isDarkMode
-                                                      ? Colors.grey[800]
-                                                      : Colors.white,
-                                              actions: [
-                                                DropdownButton<int>(
-                                                  value: 15,
-                                                  items:
-                                                      [15, 30, 60]
-                                                          .map(
-                                                            (
-                                                              minutes,
-                                                            ) => DropdownMenuItem(
-                                                              value: minutes,
-                                                              child: Text(
-                                                                '$minutes minutes',
-                                                              ),
+                                            ),
+                                            content: Text(
+                                              'Select sharing duration',
+                                              style: GoogleFonts.poppins(),
+                                            ),
+                                            backgroundColor:
+                                                _isDarkMode
+                                                    ? Colors.grey[800]
+                                                    : Colors.white,
+                                            actions: [
+                                              DropdownButton<int>(
+                                                value: 15,
+                                                items:
+                                                    [15, 30, 60]
+                                                        .map(
+                                                          (
+                                                            minutes,
+                                                          ) => DropdownMenuItem(
+                                                            value: minutes,
+                                                            child: Text(
+                                                              '$minutes minutes',
                                                             ),
-                                                          )
-                                                          .toList(),
-                                                  onChanged: (value) async {
-                                                    if (value != null) {
-                                                      await _startLocationSharing(
-                                                        value,
-                                                      );
-                                                      Navigator.pop(context);
-                                                    }
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  onPressed:
-                                                      () => Navigator.pop(
-                                                        context,
-                                                      ),
-                                                  child: Text(
-                                                    'Cancel',
-                                                    style: TextStyle(
-                                                      color: primaryColor,
-                                                    ),
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                onChanged: (value) async {
+                                                  if (value != null) {
+                                                    await _startLocationSharing(
+                                                      value,
+                                                    );
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: Text(
+                                                  'Cancel',
+                                                  style: TextStyle(
+                                                    color: primaryColor,
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                      );
-                                    },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  _isSharing ? Colors.red : Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                _isSharing ? Colors.red : Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              _isSharing
-                                  ? 'Stop Sharing'
-                                  : 'Start Sharing Location',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
                             ),
                           ),
-                        ],
-                      ),
+                          child: Text(
+                            _isSharing
+                                ? 'Stop Sharing'
+                                : 'Start Sharing Location',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-      ),
+                  ),
+                ],
+              ),
     );
   }
 

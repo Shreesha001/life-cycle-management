@@ -22,7 +22,7 @@ class MyDrawerWidget extends StatelessWidget {
             accountEmail: null,
           ),
           ListTile(
-            title: const Text("Find my family"),
+            title: const Text("Find my family" , style: TextStyle(color: Colors.black),),
             selected: true,
             onTap: () {
               Navigator.pop(context);
